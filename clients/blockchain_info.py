@@ -2,7 +2,6 @@ from clients import client_base
 
 
 class BlockchainInfoClient(client_base.ClientBase):
-
     endpoint_url = 'wss://ws.blockchain.info/inv'
 
     def subscribe(self):
