@@ -8,6 +8,6 @@ class BlockchainInfoClient(client_base.ClientBase):
     def subscribe(self):
         self.connection.send('{"op":"unconfirmed_sub"}')
 
-    def handle_event(self, connection):
-        msg = self.read_message(connection)
+    def handle_event(self):
+        msg = self.read_message()
         print('received msg "{0}"'.format(msg))

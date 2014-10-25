@@ -1,0 +1,10 @@
+language: python
+python:
+  - "3.4"
+script: ./run_tests.sh
+notifications:
+  email:
+    recipients:
+      - mauro.stettler@gmail.com
+    on_success: change
+    on_failure: change

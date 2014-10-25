@@ -26,6 +26,11 @@ class ClientBase(metaclass=abc.ABCMeta):
     def __init__(self, *args, **kwargs):
         self.connection_class = kwargs['connection_class']
 
+    def read_message(self):
+        if not hasattr(self, 'connection'):
+            return "not connected"
+        return self.connection.recv()
+
     def connect(self):
         self.connection = self.connection_class(url=self.endpoint_url)
         self.connection.connect()
@@ -36,7 +41,3 @@ class ClientBase(metaclass=abc.ABCMeta):
 
     def get_connection(self):
         return self.connection
-
-    @staticmethod
-    def read_message(connection):
-        return connection.recv()
