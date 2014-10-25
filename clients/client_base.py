@@ -37,7 +37,6 @@ class ClientBase(metaclass=abc.ABCMeta):
 
     def initialize(self):
         self.connect()
-        self.subscribe()
 
     def get_connection(self):
         return self.connection

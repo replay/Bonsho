@@ -6,11 +6,10 @@ class Client(client_base.ClientBase):
     endpoint_url = "testurl"
 
     def __init__(self, *args, **kwargs):
-        self.subscribed = False
         super(Client, self).__init__(*args, **kwargs)
 
     def subscribe(self):
-        self.subscribed = True
+        pass
 
     def handle_event(self):
         pass
@@ -47,7 +46,6 @@ class ClientBaseTest(unittest.TestCase):
     def test_initialize(self):
         self.client.initialize()
         self.assertTrue(self.client.connection.connected)
-        self.assertTrue(self.client.subscribed)
 
     def test_get_connection(self):
         self.client.connect()
