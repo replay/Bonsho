@@ -6,6 +6,7 @@ class BlockCypherClient(client_base.ClientBase):
     endpoint_url = 'ws://socket.blockcypher.com/v1/btc/main'
     endpoint_name = 'Block Cypher'
     ping_msg = '{ "event": "ping" }'
+    ping_interval = 20
 
     def subscribe(self, addr=None):
         self.connection.send(

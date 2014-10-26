@@ -1,6 +1,8 @@
 import abc
 import queue
-import pinger
+import threading
+import event_loop
+import connection
 
 
 class ClientBase(metaclass=abc.ABCMeta):
@@ -23,6 +25,12 @@ class ClientBase(metaclass=abc.ABCMeta):
         '''Each endpoint shall have a name.'''
         pass
 
+    @property
+    @abc.abstractmethod
+    def ping_interval(self):
+        '''Each x seconds a ping should be sent.'''
+        pass
+
     @abc.abstractmethod
     def subscribe(self, address):
         '''Subscribe to the notifications we are interested in.'''
@@ -33,41 +41,41 @@ class ClientBase(metaclass=abc.ABCMeta):
         '''Parse an incoming message.'''
         pass
 
-    @property
-    def has_pinger(self):
-        if (hasattr(self, 'ping_thread') and
-            hasattr(self.ping_thread, 'worker') and
-            hasattr(self.ping_thread.worker, 'isAlive')):
-                return self.ping_thread.worker.isAlive()
-
     def __init__(self, *args, **kwargs):
         self.connection_class = kwargs['connection_class']
         self.msg_queue = kwargs['msg_queue']
+        self.worker = threading.Thread(
+            name='Worker for {0}'.format(self.endpoint_name),
+            target=self._run,
+            daemon=False)
+        self.loop = event_loop.EventLoop()
 
-    def create_pinger(self):
-        self.ping_thread = pinger.Pinger(
-            msg=self.ping_msg,
-            endpoint=self.endpoint_name,
-            connection=self.get_connection())
+    def _run(self):
+        self.connect()
+        self.loop.add_reader(
+            self.connection.get_socket(),
+            self.handle_event)
+        self.ping()
+        self.loop.run()
 
-    def kill_pinger(self):
-        self.ping_thread.send_quit()
+    def ping(self):
+        self.connection.send(self.ping_msg)
+        self.loop.loop.call_later(self.ping_interval, self.ping)
+
+    def run(self):
+        self.worker.start()
 
     def read_message(self):
         if not hasattr(self, 'connection'):
-            return "not connected"
+            raise connection.NotConnectedException()
         return self.connection.recv()
 
     def connect(self):
         self.connection = self.connection_class(url=self.endpoint_url)
         self.connection.connect()
 
-    def initialize(self):
-        self.connect()
-        self.create_pinger()
-
-    def get_connection(self):
-        return self.connection
+    def disconnect(self):
+        self.connection.disconnect()
 
     def handle_event(self):
         msg = self.parse_msg(self.read_message())

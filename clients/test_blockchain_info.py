@@ -1,3 +1,4 @@
+import json
 import unittest
 from collections import deque
 from clients import blockchain_info
@@ -12,6 +13,6 @@ class BlockchainInfoClientTest(unittest.TestCase):
             msg_queue=queue)
 
     def test_parse_msg(self):
-        message_raw = "message"
-        message_parsed = self.client.parse_msg(message_raw)
+        message_raw = {'op': 'test'}
+        message_parsed = self.client.parse_msg(json.dumps(message_raw))
         self.assertEqual(message_raw, message_parsed)

@@ -1,12 +1,14 @@
 import unittest
 from clients import client_base
 import queue
+import connection
 
 
 class Client(client_base.ClientBase):
     endpoint_url = 'testurl'
     endpoint_name = 'Test Endpoint'
     ping_msg = 'ping msg'
+    ping_interval = 20
 
     def __init__(self, *args, **kwargs):
         super(Client, self).__init__(*args, **kwargs)
@@ -34,6 +36,9 @@ class ConnectionClass:
     def connect(self):
         self.connected = True
 
+    def disconnect(self):
+        self.connected = False
+
 
 class ClientBaseTest(unittest.TestCase):
 
@@ -43,36 +48,25 @@ class ClientBaseTest(unittest.TestCase):
             connection_class=ConnectionClass,
             msg_queue=self.test_queue)
 
-    def test_create_kill_pinger(self):
-        self.assertFalse(self.client.has_pinger)
-        self.client.connect()
-        self.client.create_pinger()
-        self.assertTrue(self.client.has_pinger)
-        self.client.kill_pinger()
-        self.assertFalse(self.client.has_pinger)
-
     def test_read_message(self):
-        self.client.connection = ConnectionClass()
-        self.assertEqual(self.client.read_message(), "teststring")
+        self.assertRaises(
+            connection.NotConnectedException,
+            self.client.read_message)
+        self.client.connect()
+        self.assertEqual(
+            self.client.read_message(),
+            'teststring')
 
-    def test_connect(self):
+    def test_connect_disconnect(self):
         self.client.connect()
         self.assertTrue(self.client.connection.__class__ == ConnectionClass)
         self.assertEqual(self.client.connection.url, "testurl")
         self.assertEqual(self.client.connection.connected, True)
-
-    def test_initialize(self):
-        self.client.initialize()
-        self.assertTrue(self.client.connection.connected)
-        self.assertTrue(self.client.has_pinger)
-        self.client.kill_pinger()
-
-    def test_get_connection(self):
-        self.client.connect()
-        connection = self.client.get_connection()
-        self.assertTrue(connection.__class__ == ConnectionClass)
+        self.client.disconnect()
+        self.assertEqual(self.client.connection.connected, False)
 
     def test_handle_event(self):
+        self.client.connect()
         self.client.handle_event()
         msg = self.test_queue.get()
-        self.assertEqual(msg, 'not connected')
+        self.assertEqual(msg, 'teststring')

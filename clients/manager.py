@@ -9,10 +9,9 @@ class ClientManager:
     def add_client(self, client):
         self.clients.append(client)
 
-    def get_socket_handler_pairs(self):
-        return [
-            (x.get_connection().get_socket(), x.handle_event)
-            for x in self.clients]
+    def run_all(self):
+        for client in self.clients:
+            client.run()
 
-    def handle_event(self):
+    def subscribe_addresses(self, addresses):
         pass

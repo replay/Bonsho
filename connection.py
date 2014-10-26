@@ -1,6 +1,10 @@
 import websocket
 
 
+class NotConnectedException(Exception):
+    pass
+
+
 class WebsocketsConnection:
 
     def __init__(self, *args, **kwargs):
