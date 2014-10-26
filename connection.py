@@ -10,7 +10,11 @@ class WebsocketsConnection:
         self.connection.send(msg)
 
     def recv(self):
-        return self.connection.recv()
+        try:
+            return self.connection.recv()
+        except (websocket._exceptions.WebSocketConnectionClosedException,
+                websocket._exceptions.WebSocketTimeoutException):
+            self.connect()
 
     def get_socket(self):
         return self.connection.sock
