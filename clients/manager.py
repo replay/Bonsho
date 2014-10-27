@@ -2,9 +2,8 @@
 
 class ClientManager:
 
-    def __init__(self, socket):
+    def __init__(self):
         self.clients = []
-        self.socket = socket
 
     def add_client(self, client):
         self.clients.append(client)

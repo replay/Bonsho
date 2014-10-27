@@ -101,6 +101,8 @@ class ClientBase(metaclass=abc.ABCMeta):
         if cmd == 'shutdown':
             self.connection.close()
             self.loop.stop()
+        elif cmd[:9] == 'subscribe':
+            self.subscribe(cmd.split(':')[1])
 
     def handle_event(self):
         msg = self.parse_msg(self.read_message())

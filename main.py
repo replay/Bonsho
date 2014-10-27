@@ -5,12 +5,17 @@ import connection
 import socket
 import deduplicator
 import queue
+import time
+import logging
+import asyncio
+import conf_server
 from clients import blockchain_info
 from clients import blockcypher
 from clients import manager as client_manager
 
-conf_sock = socket.socket()
-conf_sock.bind(('127.0.0.1', 5555))
+
+conf_loop = asyncio.new_event_loop()
+conf_s = conf_loop.create_server(conf_server.ConfServer, '127.0.0.1', 5555)
 
 raw_q = queue.Queue()
 deduplicated_q = queue.Queue()
@@ -19,7 +24,7 @@ client_classes = [
     blockcypher.BlockCypherClient,
     blockchain_info.BlockchainInfoClient]
 
-client_manager = client_manager.ClientManager(socket=conf_sock)
+client_manager = client_manager.ClientManager()
 
 for client_class in client_classes:
     client = client_class(
@@ -48,6 +53,9 @@ addresses = [
 ]
 
 client_manager.subscribe_addresses(addresses)
+
+conf_loop.run_until_complete(conf_s)
+conf_loop.run_forever()
 
 client_manager.shutdown()
 deduper.shutdown()

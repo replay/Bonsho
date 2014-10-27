@@ -16,7 +16,8 @@ class Deduplicator:
 
     def process_q(self):
         while not self._shutdown:
-            self.in_q.get(block=True)
+            msg = self.in_q.get(block=True)
+            print(msg)
 
     def shutdown(self):
         self._shutdown = True
