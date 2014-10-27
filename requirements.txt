@@ -2,3 +2,5 @@ websocket-client
 nose
 pep8
 flake8
+coverage
+nose-cover3

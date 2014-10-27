@@ -11,4 +11,4 @@ function run_test_cmd {
 }
 
 run_test_cmd "flake8 ."
-run_test_cmd "nosetests"
+run_test_cmd "nosetests --with-coverage3 --cover3-html --cover3-inclusive"

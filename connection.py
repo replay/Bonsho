@@ -25,3 +25,6 @@ class WebsocketsConnection:
 
     def connect(self):
         self.connection = websocket.create_connection(self.url)
+
+    def close(self):
+        self.connection.close()

@@ -1,8 +1,8 @@
 import abc
-import queue
+import asyncio
 import threading
-import event_loop
 import connection
+from multiprocessing import Pipe
 
 
 class ClientBase(metaclass=abc.ABCMeta):
@@ -44,23 +44,42 @@ class ClientBase(metaclass=abc.ABCMeta):
     def __init__(self, *args, **kwargs):
         self.connection_class = kwargs['connection_class']
         self.msg_queue = kwargs['msg_queue']
+        self.cmd_pipe = Pipe()
+        self.loop = asyncio.new_event_loop()
         self.worker = threading.Thread(
             name='Worker for {0}'.format(self.endpoint_name),
             target=self._run,
             daemon=False)
-        self.loop = event_loop.EventLoop()
 
     def _run(self):
+        # setup command listener
+        self.loop.add_reader(
+            self.cmd_pipe[1],
+            self.handle_cmd)
+
+        # connect to api
         self.connect()
+
+        # handle events coming from api
         self.loop.add_reader(
             self.connection.get_socket(),
             self.handle_event)
+
+        # setup ping job
         self.ping()
-        self.loop.run()
+
+        # run the loop
+        self.loop.run_forever()
+
+    def join(self):
+        self.worker.join()
+
+    def get_cmd_pipe(self):
+        return self.cmd_pipe[0]
 
     def ping(self):
         self.connection.send(self.ping_msg)
-        self.loop.loop.call_later(self.ping_interval, self.ping)
+        self.loop.call_later(self.ping_interval, self.ping)
 
     def run(self):
         self.worker.start()
@@ -77,9 +96,12 @@ class ClientBase(metaclass=abc.ABCMeta):
     def disconnect(self):
         self.connection.disconnect()
 
+    def handle_cmd(self):
+        cmd = self.cmd_pipe[1].recv()
+        if cmd == 'shutdown':
+            self.connection.close()
+            self.loop.stop()
+
     def handle_event(self):
         msg = self.parse_msg(self.read_message())
-        try:
-            self.msg_queue.put(msg, block=True, timeout=3)
-        except queue.Full:
-            print("queue is full")
+        self.msg_queue.put(msg, block=True, timeout=3)

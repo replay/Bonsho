@@ -48,3 +48,6 @@ addresses = [
 ]
 
 client_manager.subscribe_addresses(addresses)
+
+client_manager.shutdown()
+deduper.shutdown()
