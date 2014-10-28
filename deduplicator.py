@@ -9,10 +9,10 @@ class Deduplicator:
         self._shutdown = False
         self.in_q = kwargs['in_q']
         self.out_q = kwargs['out_q']
+        self.redis = redis_client.RedisClient()
         self.worker_thread = threading.Thread(
             name='deduplicator',
             target=self.process_q)
-        self.redis = redis_client.RedisClient()
 
     def process(self):
         self.worker_thread.start()
