@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 
-import connection
+from lib import connection
 import socket
-import deduplicator
+from lib import deduplicator
 import queue
 import time
 import logging

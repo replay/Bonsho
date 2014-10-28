@@ -3,8 +3,8 @@ import json
 import pickle
 import asyncio
 import threading
-import transaction
-import connection
+from models import transaction
+from lib import connection
 from multiprocessing import Pipe
 
 
