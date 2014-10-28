@@ -1,6 +1,9 @@
 import abc
+import json
+import pickle
 import asyncio
 import threading
+import transaction
 import connection
 from multiprocessing import Pipe
 
@@ -36,11 +39,6 @@ class ClientBase(metaclass=abc.ABCMeta):
         '''Subscribe to the notifications we are interested in.'''
         pass
 
-    @abc.abstractmethod
-    def parse_msg(self, msg):
-        '''Parse an incoming message.'''
-        pass
-
     def __init__(self, *args, **kwargs):
         self.connection_class = kwargs['connection_class']
         self.msg_queue = kwargs['msg_queue']
@@ -70,6 +68,11 @@ class ClientBase(metaclass=abc.ABCMeta):
 
         # run the loop
         self.loop.run_forever()
+
+    def _build_address(self, address_dict):
+        return transaction.BTCTransactionAddress(
+            address=address_dict['addr'],
+            value=address_dict['value'])
 
     def join(self):
         self.worker.join()
@@ -105,5 +108,8 @@ class ClientBase(metaclass=abc.ABCMeta):
             self.subscribe(cmd.split(':')[1])
 
     def handle_event(self):
-        msg = self.parse_msg(self.read_message())
-        self.msg_queue.put(msg, block=True, timeout=3)
+        msg = json.loads(self.read_message())
+        if not self._is_pong(msg):
+            data = self._build_transaction(
+                self._extract_transaction_data(msg))
+            self.msg_queue.put(pickle.dumps(data), block=True, timeout=3)
