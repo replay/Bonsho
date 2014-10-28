@@ -1,4 +1,6 @@
 import threading
+import pickle
+from lib import redis_client
 
 
 class Deduplicator:
@@ -10,16 +12,17 @@ class Deduplicator:
         self.worker_thread = threading.Thread(
             name='deduplicator',
             target=self.process_q)
+        self.redis = redis_client.RedisClient()
 
     def process(self):
         self.worker_thread.start()
 
     def process_q(self):
         while not self._shutdown:
-            msg = self.in_q.get(block=True)
-            print(msg)
+            transaction = pickle.loads(self.in_q.get(block=True))
+            if not self.redis.is_duplicate(transaction.hash):
+                self.out_q.put(pickle.dumps(transaction))
 
     def shutdown(self):
         self._shutdown = True
-        self.in_q.put('trigger process loop')
         self.worker_thread.join()

@@ -18,7 +18,7 @@ conf_loop = asyncio.new_event_loop()
 conf_s = conf_loop.create_server(conf_server.ConfServer, '127.0.0.1', 5555)
 
 raw_q = queue.Queue()
-deduplicated_q = queue.Queue()
+unique_q = queue.Queue()
 
 client_classes = [
     blockcypher.BlockCypherClient,
@@ -36,7 +36,7 @@ client_manager.run_all()
 
 deduper = deduplicator.Deduplicator(
     in_q=raw_q,
-    out_q=deduplicated_q)
+    out_q=unique_q)
 deduper.process()
 
 # these addresses are just to test, because they generate traffic

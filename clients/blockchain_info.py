@@ -10,7 +10,6 @@ class BlockchainInfoClient(client_base.ClientBase):
     ping_interval = 20
 
     def subscribe(self, addr=None):
-        print('bi subscribing {0}'.format(addr))
         self.connection.send(
             json.dumps({
                 'op':'unconfirmed_sub'}))

@@ -10,7 +10,6 @@ class BlockCypherClient(client_base.ClientBase):
     ping_interval = 20
 
     def subscribe(self, addr=None):
-        print('bc subscribing {0}'.format(addr))
         self.connection.send(
             json.dumps({
                 'event': 'unconfirmed-tx'}))
@@ -22,7 +21,6 @@ class BlockCypherClient(client_base.ClientBase):
         return False
 
     def _extract_transaction_data(self, data):
-        print(data)
         return data
 
     def _build_transaction_input(self, data):
