@@ -2,42 +2,15 @@
 
 
 from lib import connection
-import socket
 from lib import deduplicator
+from lib import config
 import queue
-import time
-import logging
 import asyncio
-import conf_server
+from api import server
 from clients import blockchain_info
 from clients import blockcypher
 from clients import manager as client_manager
 
-
-conf_loop = asyncio.new_event_loop()
-conf_s = conf_loop.create_server(conf_server.ConfServer, '127.0.0.1', 5555)
-
-raw_q = queue.Queue()
-unique_q = queue.Queue()
-
-client_classes = [
-    blockcypher.BlockCypherClient,
-    blockchain_info.BlockchainInfoClient]
-
-client_manager = client_manager.ClientManager()
-
-for client_class in client_classes:
-    client = client_class(
-        connection_class=connection.WebsocketsConnection,
-        msg_queue=raw_q)
-    client_manager.add_client(client)
-
-client_manager.run_all()
-
-deduper = deduplicator.Deduplicator(
-    in_q=raw_q,
-    out_q=unique_q)
-deduper.process()
 
 # these addresses are just to test, because they generate traffic
 addresses = [
@@ -60,10 +33,40 @@ addresses = [
     '1dice6DPtUMBpWgv8i4pG8HMjXv9qDJWN',
 ]
 
-client_manager.subscribe_addresses(addresses)
 
-conf_loop.run_until_complete(conf_s)
-conf_loop.run_forever()
+class Bonsho:
+    client_classes = [
+        blockcypher.BlockCypherClient,
+        blockchain_info.BlockchainInfoClient]
 
-client_manager.shutdown()
-deduper.shutdown()
+    def __init__(self):
+        self.config = config.Configuration()
+        self._setup_queues()
+        self.api = server.ApiServer()
+        self.client_manager = client_manager.ClientManager()
+        for client_class in self.client_classes:
+            self.client_manager.add_client(
+                client_class(
+                    connection_class=connection.WebsocketsConnection,
+                    msg_queue=self.raw_q))
+        self.deduper = deduplicator.Deduplicator(
+            in_q=self.raw_q,
+            out_q=self.unique_q)
+
+    def _setup_queues(self):
+        self.raw_q = queue.Queue()
+        self.unique_q = queue.Queue()
+
+    def run(self):
+        self.deduper.process()
+        self.client_manager.run_all()
+        self.client_manager.subscribe_addresses(addresses)
+        self.api.run()
+
+    def shutdown(self):
+        self.client_manager.shutdown()
+        self.deduper.shutdown()
+
+if __name__ == '__main__':
+    bonsho = Bonsho()
+    bonsho.run()
