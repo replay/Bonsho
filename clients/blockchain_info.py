@@ -24,14 +24,38 @@ class BlockchainInfoClient(client_base.ClientBase):
     def _extract_transaction_data(self, data):
         return data['x']
 
+    def _build_transaction_input(self, data):
+        return transaction.BTCTransactionInput(
+            value=data['value'],
+            addresses=[
+                transaction.BTCTransactionAddress(
+                    address=data['addr'])])
+
+    def _build_transaction_inputs(self, data):
+        return transaction.BTCTransactionInputs(
+            inputs=[
+                self._build_transaction_input(input['prev_out'])
+                for input in data])
+
+    def _build_transaction_output(self, data):
+        return transaction.BTCTransactionOutput(
+            value=data['value'],
+            addresses=[
+                transaction.BTCTransactionAddress(
+                    address=data['addr'])])
+
+    def _build_transaction_outputs(self, data):
+        return transaction.BTCTransactionOutputs(
+            outputs=[
+                self._build_transaction_output(output)
+                for output in data])
+
     def _build_transaction(self, tx_data):
-        # build and return the transaction structure
         return transaction.BTCTransaction(
-            outputs=[self._build_address(addr)
-                 for addr in tx_data['out']],
-            inputs=[self._build_address(addr['prev_out'])
-                 for addr in tx_data['inputs']],
+            outputs=self._build_transaction_outputs(tx_data['out']),
+            inputs=self._build_transaction_inputs(tx_data['inputs']),
             hash=tx_data['hash'])
+
 
 # The msg format we get from BlockchainInfo
 '''

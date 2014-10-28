@@ -25,4 +25,6 @@ class Deduplicator:
 
     def shutdown(self):
         self._shutdown = True
+        # make the processing loop cycle one last time
+        self.in_q.put('shutdown')
         self.worker_thread.join()

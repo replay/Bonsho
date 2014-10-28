@@ -52,12 +52,9 @@ class BlockCypherClient(client_base.ClientBase):
                 for output in data])
 
     def _build_transaction(self, tx_data):
-        outputs = self._build_transaction_outputs(tx_data['outputs'])
-        inputs = self._build_transaction_inputs(tx_data['inputs'])
-
         return transaction.BTCTransaction(
-            outputs=outputs,
-            inputs=inputs,
+            outputs=self._build_transaction_outputs(tx_data['outputs']),
+            inputs=self._build_transaction_inputs(tx_data['inputs']),
             hash=tx_data['hash'])
 
 # The msg format we get from BlockCypher
