@@ -36,3 +36,6 @@ class ClientManager:
     def subscribe_addresses(self, addresses):
         for address in addresses:
             self.subscribe_address(address)
+
+    def subscribe_all_transactions(self):
+        self.send_to_all('subscribe:all')

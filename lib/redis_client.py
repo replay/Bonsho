@@ -1,5 +1,6 @@
 import redis
 import time
+from lib import config as project_config
 
 
 class RedisClient:
@@ -11,7 +12,11 @@ class RedisClient:
         return cls._instance
 
     def __init__(self):
-        self.conn_pool = redis.ConnectionPool(host='localhost', port=6379, db=0)
+        config = project_config.Configuration()['Redis']
+        self.conn_pool = redis.ConnectionPool(
+            host=config['host'],
+            port=int(config['port']),
+            db=int(config['db']))
         self.redis = redis.Redis(connection_pool=self.conn_pool)
 
     def _get_time(self):

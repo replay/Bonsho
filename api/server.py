@@ -11,7 +11,10 @@ class ApiServer:
         self.config.add_route('address_subscriber', '/v1/add_address')
         self.app = self.config.make_wsgi_app()
         config = project_config.Configuration()['API']
-        self.server = make_server(config['Host'], int(config['Port']), self.app)
+        self.server = make_server(
+            config['Host'],
+            int(config['Port']),
+            self.app)
 
     def run(self):
         self.server.serve_forever()

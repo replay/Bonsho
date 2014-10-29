@@ -11,13 +11,16 @@ class BlockchainInfoClient(client_base.ClientBase):
     ping_interval = 20
     connection_class = connection.WebsocketsConnection
 
-    def subscribe(self, addr=None):
-        print('subscribing to {0} from blockchain info'.format(addr))
+    def subscribe(self, addr):
+        if addr == 'all':
+            print('subscribing to all tx from blockchain info.')
+            subscription = {'op': 'unconfirmed_sub'}
+        else:
+            print('subscribing to {0} from blockchain info.'.format(addr))
+            subscription = {'op': 'addr_sub', 'addr': addr}
+
         self.connection.send(
-            json.dumps({
-                'op':'unconfirmed_sub'}))
-            #    'op': 'addr_sub',
-            #    'addr': addr}))
+            json.dumps(subscription))
 
     def _is_pong(self, msg):
         if 'op' in msg.keys() and msg['op'] == 'block':
@@ -62,5 +65,5 @@ class BlockchainInfoClient(client_base.ClientBase):
 
 # The msg format we get from BlockchainInfo
 '''
-{'op': 'utx', 'x': {'time': 1414435735, 'size': 258, 'vout_sz': 2, 'out': [{'type': 0, 'addr_tag_link': 'http://satoshidice.com', 'value': 6500000, 'addr': '1dice7W2AicHosf5EL3GFDUVga7TgtPFn', 'addr_tag': 'SatoshiDICE 36%'}, {'value': 20986690, 'addr': '1Ewk9iKm5Hu8Lxq21CMamnaWG6d3NcUc3p', 'type': 0}], 'hash': '426ea994a05614abf88ed01fee485a85105e2a8fc3591de77d26e47a383c7119', 'vin_sz': 1, 'inputs': [{'prev_out': {'value': 27496690, 'addr': '1Ewk9iKm5Hu8Lxq21CMamnaWG6d3NcUc3p', 'type': 0}}], 'tx_index': 67752554, 'relayed_by': '127.0.0.1', 'lock_time': 'Unavailable'}}
+{'op': 'utx', 'x': {'time': 1414435735, 'size': 258, 'vout_sz': 2, 'out': [{'type': 0, 'addr_tag_link': 'http://satoshidice.com', 'value': 6500000, 'addr': '1dice7W2AicHosf5EL3GFDUVga7TgtPFn', 'addr_tag': 'SatoshiDICE 36%'}, {'value': 20986690, 'addr': '1Ewk9iKm5Hu8Lxq21CMamnaWG6d3NcUc3p', 'type': 0}], 'hash': '426ea994a05614abf88ed01fee485a85105e2a8fc3591de77d26e47a383c7119', 'vin_sz': 1, 'inputs': [{'prev_out': {'value': 27496690, 'addr': '1Ewk9iKm5Hu8Lxq21CMamnaWG6d3NcUc3p', 'type': 0}}], 'tx_index': 67752554, 'relayed_by': '127.0.0.1', 'lock_time': 'Unavailable'}} # noqa
 '''

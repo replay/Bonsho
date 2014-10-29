@@ -11,4 +11,11 @@ function run_test_cmd {
 }
 
 run_test_cmd "flake8 ."
-run_test_cmd "nosetests --with-coverage3 --cover3-html --cover3-inclusive"
+cmd="nosetests"
+
+if [ "${1}" == "cover" ]
+then
+   cmd="${cmd} --with-coverage3 --cover3-html --cover3-inclusive"
+fi
+
+run_test_cmd "${cmd}"

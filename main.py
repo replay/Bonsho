@@ -4,10 +4,9 @@
 from lib import deduplicator
 from lib import config
 import queue
-import asyncio
 from api import server
-from clients import blockchain_info
 from clients import blockcypher
+from clients import blockchain_info
 from clients import manager as client_manager
 
 
@@ -39,7 +38,7 @@ class Bonsho:
         blockchain_info.BlockchainInfoClient]
 
     def __init__(self):
-        self.config = config.Configuration()
+        self.config = config.Configuration()['Main']
         self._setup_queues()
         self.api = server.ApiServer()
         self.client_manager = client_manager.ClientManager(input_q=self.raw_q)
@@ -56,7 +55,10 @@ class Bonsho:
     def run(self):
         self.deduper.run()
         self.client_manager.run_all()
-        self.client_manager.subscribe_addresses(addresses)
+        if int(self.config['Test']):
+            self.client_manager.subscribe_all_transactions()
+        else:
+            self.client_manager.subscribe_addresses(addresses)
         self.api.run()
 
     def shutdown(self):

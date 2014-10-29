@@ -40,6 +40,21 @@ class ClientBase(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
+    def _build_transaction(self, tx_data):
+        '''Build Transaction object from data.'''
+        pass
+
+    @abc.abstractmethod
+    def _extract_transaction_data(self, data):
+        '''Extract transaction from raw data.'''
+        pass
+
+    @abc.abstractmethod
+    def _is_pong(self, msg):
+        '''Check if message is a ping reply.'''
+        pass
+
+    @abc.abstractmethod
     def subscribe(self, address):
         '''Subscribe to the notifications we are interested in.'''
         pass
