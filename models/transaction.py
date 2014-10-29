@@ -9,7 +9,7 @@ class BTCTransactionAddress:
 class BTCTransactionInput:
     def __init__(self, *args, **kwargs):
         self.addresses = kwargs['addresses']
-        self.value = kwargs['value']
+        self.value = int(kwargs['value'])
 
 
 class BTCTransactionInputs:
@@ -22,7 +22,7 @@ class BTCTransactionOutput:
 
     def __init__(self, *args, **kwargs):
         self.addresses = kwargs['addresses']
-        self.value = kwargs['value']
+        self.value = int(kwargs['value'])
 
 
 class BTCTransactionOutputs:

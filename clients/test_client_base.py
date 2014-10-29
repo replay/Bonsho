@@ -1,24 +1,8 @@
 import unittest
+import pickle
 from clients import client_base
 import queue
-import connection
-
-
-class Client(client_base.ClientBase):
-    endpoint_url = 'testurl'
-    endpoint_name = 'Test Endpoint'
-    ping_msg = 'ping msg'
-    ping_interval = 20
-
-    def __init__(self, *args, **kwargs):
-        super(Client, self).__init__(*args, **kwargs)
-        self.got_test_string = False
-
-    def subscribe(self):
-        pass
-
-    def parse_msg(self, msg):
-        return msg
+from lib import connection
 
 
 class ConnectionClass:
@@ -28,7 +12,7 @@ class ConnectionClass:
         self.connected = False
 
     def recv(self):
-        return "teststring"
+        return '{"action": "test"}'
 
     def send(self, msg):
         pass
@@ -38,6 +22,30 @@ class ConnectionClass:
 
     def disconnect(self):
         self.connected = False
+
+
+class Client(client_base.ClientBase):
+    endpoint_url = 'testurl'
+    endpoint_name = 'Test Endpoint'
+    ping_msg = 'ping msg'
+    ping_interval = 20
+    connection_class = ConnectionClass
+
+    def __init__(self, *args, **kwargs):
+        super(Client, self).__init__(*args, **kwargs)
+        self.got_test_string = False
+
+    def subscribe(self):
+        pass
+
+    def _build_transaction(self, msg):
+        return msg
+
+    def _extract_transaction_data(self, msg):
+        return msg
+
+    def _is_pong(self, value):
+        return False
 
 
 class ClientBaseTest(unittest.TestCase):
@@ -55,7 +63,7 @@ class ClientBaseTest(unittest.TestCase):
         self.client.connect()
         self.assertEqual(
             self.client.read_message(),
-            'teststring')
+            '{"action": "test"}')
 
     def test_connect_disconnect(self):
         self.client.connect()
@@ -69,4 +77,4 @@ class ClientBaseTest(unittest.TestCase):
         self.client.connect()
         self.client.handle_event()
         msg = self.test_queue.get()
-        self.assertEqual(msg, 'teststring')
+        self.assertEqual(msg, pickle.dumps({"action": "test"}))
