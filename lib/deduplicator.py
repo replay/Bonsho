@@ -14,7 +14,7 @@ class Deduplicator:
             name='deduplicator',
             target=self.process_q)
 
-    def process(self):
+    def run(self):
         self.worker_thread.start()
 
     def process_q(self):

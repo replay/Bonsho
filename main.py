@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 
-from lib import connection
 from lib import deduplicator
 from lib import config
 import queue
@@ -43,12 +42,9 @@ class Bonsho:
         self.config = config.Configuration()
         self._setup_queues()
         self.api = server.ApiServer()
-        self.client_manager = client_manager.ClientManager()
+        self.client_manager = client_manager.ClientManager(input_q=self.raw_q)
         for client_class in self.client_classes:
-            self.client_manager.add_client(
-                client_class(
-                    connection_class=connection.WebsocketsConnection,
-                    msg_queue=self.raw_q))
+            self.client_manager.add_client(client_class)
         self.deduper = deduplicator.Deduplicator(
             in_q=self.raw_q,
             out_q=self.unique_q)
@@ -58,7 +54,7 @@ class Bonsho:
         self.unique_q = queue.Queue()
 
     def run(self):
-        self.deduper.process()
+        self.deduper.run()
         self.client_manager.run_all()
         self.client_manager.subscribe_addresses(addresses)
         self.api.run()

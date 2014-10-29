@@ -1,6 +1,7 @@
 import json
 from models import transaction
 from clients import client_base
+from lib import connection
 
 
 class BlockCypherClient(client_base.ClientBase):
@@ -8,6 +9,7 @@ class BlockCypherClient(client_base.ClientBase):
     endpoint_name = 'Block Cypher'
     ping_msg = '{ "event": "ping" }'
     ping_interval = 20
+    connection_class = connection.WebsocketsConnection
 
     def subscribe(self, addr=None):
         self.connection.send(

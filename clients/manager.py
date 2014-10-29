@@ -2,11 +2,13 @@
 
 class ClientManager:
 
-    def __init__(self):
+    def __init__(self, input_q):
+        self.input_q = input_q
         self.clients = []
 
-    def add_client(self, client):
-        self.clients.append(client)
+    def add_client(self, client_class):
+        self.clients.append(
+            client_class(msg_queue=self.input_q))
 
     def run_all(self):
         for client in self.clients:

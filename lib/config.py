@@ -13,5 +13,5 @@ class Configuration:
         self.config = configparser.ConfigParser()
         self.config.read('bonsho.ini')
 
-    def __getattr__(self, k):
-        return getattr(self.config, k)
+    def __getitem__(self, k):
+        return self.config[k]

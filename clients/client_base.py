@@ -34,13 +34,17 @@ class ClientBase(metaclass=abc.ABCMeta):
         '''Each x seconds a ping should be sent.'''
         pass
 
+    @property
+    @abc.abstractmethod
+    def connection_class(self):
+        pass
+
     @abc.abstractmethod
     def subscribe(self, address):
         '''Subscribe to the notifications we are interested in.'''
         pass
 
     def __init__(self, *args, **kwargs):
-        self.connection_class = kwargs['connection_class']
         self.msg_queue = kwargs['msg_queue']
         self.cmd_pipe = Pipe()
         self.loop = asyncio.new_event_loop()
