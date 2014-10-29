@@ -39,7 +39,8 @@ class Bonsho:
 
     def __init__(self):
         self.config = config.Configuration()['Main']
-        self._setup_queues()
+        self.raw_q = queue.Queue()
+        self.unique_q = queue.Queue()
         self.api = server.ApiServer()
         self.client_manager = client_manager.ClientManager(input_q=self.raw_q)
         for client_class in self.client_classes:
@@ -48,14 +49,10 @@ class Bonsho:
             in_q=self.raw_q,
             out_q=self.unique_q)
 
-    def _setup_queues(self):
-        self.raw_q = queue.Queue()
-        self.unique_q = queue.Queue()
-
     def run(self):
         self.deduper.run()
         self.client_manager.run_all()
-        if int(self.config['Test']):
+        if bool(self.config['Test']):
             self.client_manager.subscribe_all_transactions()
         else:
             self.client_manager.subscribe_addresses(addresses)
@@ -64,7 +61,3 @@ class Bonsho:
     def shutdown(self):
         self.client_manager.shutdown()
         self.deduper.shutdown()
-
-if __name__ == '__main__':
-    bonsho = Bonsho()
-    bonsho.run()

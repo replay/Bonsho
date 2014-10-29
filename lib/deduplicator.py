@@ -18,8 +18,11 @@ class Deduplicator:
         self.worker_thread.start()
 
     def process_q(self):
-        while not self._shutdown:
-            transaction = pickle.loads(self.in_q.get(block=True))
+        while True:
+            msg = self.in_q.get(block=True)
+            if self._shutdown:
+                break
+            transaction = pickle.loads(msg)
             if not self.redis.is_duplicate(transaction.hash):
                 self.out_q.put(pickle.dumps(transaction))
 
