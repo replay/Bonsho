@@ -12,6 +12,7 @@ class BlockCypherClient(client_base.ClientBase):
     connection_class = connection.WebsocketsConnection
 
     def subscribe(self, addr=None):
+        print('subscribing to {0} from block cypher'.format(addr))
         self.connection.send(
             json.dumps({
                 'event': 'unconfirmed-tx'}))

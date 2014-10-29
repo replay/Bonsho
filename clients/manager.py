@@ -1,10 +1,16 @@
 
 
 class ClientManager:
+    _instance = None
 
     def __init__(self, input_q):
+        self.__class__._instance = self
         self.input_q = input_q
         self.clients = []
+
+    @classmethod
+    def get_instance(cls):
+        return cls._instance
 
     def add_client(self, client_class):
         self.clients.append(
@@ -23,7 +29,10 @@ class ClientManager:
         for client in self.clients:
             client.join()
 
+    def subscribe_address(self, address):
+        self.send_to_all('subscribe:{address}'.format(
+            address=address))
+
     def subscribe_addresses(self, addresses):
         for address in addresses:
-            self.send_to_all('subscribe:{address}'.format(
-                address=address))
+            self.subscribe_address(address)

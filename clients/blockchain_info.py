@@ -12,6 +12,7 @@ class BlockchainInfoClient(client_base.ClientBase):
     connection_class = connection.WebsocketsConnection
 
     def subscribe(self, addr=None):
+        print('subscribing to {0} from blockchain info'.format(addr))
         self.connection.send(
             json.dumps({
                 'op':'unconfirmed_sub'}))

@@ -21,7 +21,7 @@ class Deduplicator:
         while not self._shutdown:
             transaction = pickle.loads(self.in_q.get(block=True))
             if not self.redis.is_duplicate(transaction.hash):
-                print(pickle.dumps(transaction))
+                #print(pickle.dumps(transaction))
                 self.out_q.put(pickle.dumps(transaction))
 
     def shutdown(self):
