@@ -1,33 +1,13 @@
-import threading
-import pickle
 from lib import redis_client
+from lib import queue_filter_base
 
 
-class Deduplicator:
+class Deduplicator(queue_filter_base.QueueFilterBase):
 
-    def __init__(self, **kwargs):
-        self._shutdown = False
-        self.in_q = kwargs['in_q']
-        self.out_q = kwargs['out_q']
+    def __init__(self, *args, **kwargs):
+        super(Deduplicator, self).__init__(*args, **kwargs)
         self.redis = redis_client.RedisClient()
-        self.worker_thread = threading.Thread(
-            name='deduplicator',
-            target=self.process_q)
 
-    def run(self):
-        self.worker_thread.start()
-
-    def process_q(self):
-        while True:
-            msg = self.in_q.get(block=True)
-            if self._shutdown:
-                break
-            transaction = pickle.loads(msg)
-            if not self.redis.is_duplicate(transaction.hash):
-                self.out_q.put(pickle.dumps(transaction))
-
-    def shutdown(self):
-        self._shutdown = True
-        # make the processing loop cycle one last time
-        self.in_q.put('shutdown')
-        self.worker_thread.join()
+    def process_q_msg(self, transaction):
+        if not self.redis.is_duplicate(transaction.hash):
+            return transaction

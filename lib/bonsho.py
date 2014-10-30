@@ -3,6 +3,7 @@
 
 from lib import deduplicator
 from lib import config
+from lib import address_filter
 import queue
 from api import server
 from clients import blockcypher
@@ -39,25 +40,28 @@ class Bonsho:
 
     def __init__(self):
         self.config = config.Configuration()['Main']
-        self.raw_q = queue.Queue()
-        self.unique_q = queue.Queue()
+        self.q1 = queue.Queue()
+        self.q2 = queue.Queue()
+        self.q3 = queue.Queue()
         self.api = server.ApiServer()
-        self.client_manager = client_manager.ClientManager(input_q=self.raw_q)
+        self.client_manager = client_manager.ClientManager(input_q=self.q1)
         for client_class in self.client_classes:
             self.client_manager.add_client(client_class)
+        self.address_filter = address_filter.AddressFilter(
+            in_q=self.q1,
+            out_q=self.q2)
         self.deduper = deduplicator.Deduplicator(
-            in_q=self.raw_q,
-            out_q=self.unique_q)
+            in_q=self.q2,
+            out_q=self.q3)
 
     def run(self):
         self.deduper.run()
+        self.address_filter.run()
         self.client_manager.run_all()
-        if bool(self.config['Test']):
-            self.client_manager.subscribe_all_transactions()
-        else:
-            self.client_manager.subscribe_addresses(addresses)
+        self.client_manager.subscribe()
         self.api.run()
 
     def shutdown(self):
         self.client_manager.shutdown()
+        self.address_filter.shutdown()
         self.deduper.shutdown()

@@ -2,23 +2,23 @@ import json
 from models import transaction
 from clients import client_base
 from lib import connection
+from lib import config
 
 
 class BlockCypherClient(client_base.ClientBase):
-    endpoint_url = 'ws://socket.blockcypher.com/v1/btc/main'
     endpoint_name = 'Block Cypher'
+    endpoint_url = 'ws://socket.blockcypher.com/v1/btc/main'
     ping_msg = '{"event": "ping"}'
     ping_interval = 20
     connection_class = connection.WebsocketsConnection
 
-    def subscribe(self, addr):
-        if addr == 'all':
-            print('subscribing to {0} from block cypher.'.format(addr))
-            subscription = {'event': 'unconfirmed-tx'}
-        else:
-            print('subscribing to all tx from block cypher.')
-            subscription = {'address': addr}
+    def __init__(self, *args, **kwargs):
+        super(BlockCypherClient, self).__init__(*args, **kwargs)
+        self.config = config.Configuration()['BlockCypher']
 
+    def subscribe(self):
+        subscription = {'event': 'unconfirmed-tx',
+                        'token': self.config['token']}
         self.connection.send(
             json.dumps(subscription))
 

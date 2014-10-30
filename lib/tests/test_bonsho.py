@@ -16,17 +16,11 @@ class BonshoTest(unittest.TestCase):
 
     @mock.patch('lib.deduplicator.Deduplicator')
     def test_run(self, *args):
-        self.bonsho.config['Test'] = 'value'
         self.bonsho.run()
         self.bonsho.deduper.run.assert_called_once_with()
         self.bonsho.client_manager.run_all.assert_called_once_with()
+        self.bonsho.client_manager.subscribe.assert_called_once_with()
         self.bonsho.api.run.assert_called_once_with()
-        self.bonsho.client_manager.subscribe_all_transactions.\
-            assert_called_once_with()
-        self.bonsho.config['Test'] = ''
-        self.bonsho.run()
-        self.bonsho.client_manager.subscribe_addresses.\
-            assert_called_once_with(bonsho.addresses)
 
     def test_shutdown(self, *args):
         self.bonsho.shutdown()

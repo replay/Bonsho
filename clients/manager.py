@@ -29,13 +29,5 @@ class ClientManager:
         for client in self.clients:
             client.join()
 
-    def subscribe_address(self, address):
-        self.send_to_all('subscribe:{address}'.format(
-            address=address))
-
-    def subscribe_addresses(self, addresses):
-        for address in addresses:
-            self.subscribe_address(address)
-
-    def subscribe_all_transactions(self):
-        self.send_to_all('subscribe:all')
+    def subscribe(self):
+        self.send_to_all('subscribe')

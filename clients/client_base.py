@@ -55,7 +55,7 @@ class ClientBase(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def subscribe(self, address):
+    def subscribe(self):
         '''Subscribe to the notifications we are interested in.'''
         pass
 
@@ -123,8 +123,8 @@ class ClientBase(metaclass=abc.ABCMeta):
         if cmd == 'shutdown':
             self.connection.close()
             self.loop.stop()
-        elif cmd[:9] == 'subscribe':
-            self.subscribe(cmd.split(':')[1])
+        elif cmd == 'subscribe':
+            self.subscribe()
 
     def handle_event(self):
         msg = json.loads(self.read_message())

@@ -11,14 +11,8 @@ class BlockchainInfoClient(client_base.ClientBase):
     ping_interval = 20
     connection_class = connection.WebsocketsConnection
 
-    def subscribe(self, addr):
-        if addr == 'all':
-            print('subscribing to all tx from blockchain info.')
-            subscription = {'op': 'unconfirmed_sub'}
-        else:
-            print('subscribing to {0} from blockchain info.'.format(addr))
-            subscription = {'op': 'addr_sub', 'addr': addr}
-
+    def subscribe(self):
+        subscription = {'op': 'unconfirmed_sub'}
         self.connection.send(
             json.dumps(subscription))
 
