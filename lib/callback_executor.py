@@ -11,6 +11,4 @@ class CallbackExecutor(queue_filter_base.QueueFilterBase):
         self.config = config.Configuration()['Callback']
 
     def process_q_msg(self, transaction):
-        import pdb
-        pdb.set_trace()
         requests.post(self.config['endpoint'], data=pickle.dumps(transaction))

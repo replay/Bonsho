@@ -3,9 +3,9 @@
 class ClientManager:
     _instance = None
 
-    def __init__(self, input_q):
+    def __init__(self, out_q):
         self.__class__._instance = self
-        self.input_q = input_q
+        self.out_q = out_q
         self.clients = []
 
     @classmethod
@@ -14,7 +14,7 @@ class ClientManager:
 
     def add_client(self, client_class):
         self.clients.append(
-            client_class(msg_queue=self.input_q))
+            client_class(msg_queue=self.out_q))
 
     def run_all(self):
         for client in self.clients:
