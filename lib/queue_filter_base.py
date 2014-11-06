@@ -12,7 +12,8 @@ class QueueFilterBase(metaclass=abc.ABCMeta):
     def __init__(self, *args, **kwargs):
         self._shutdown = False
         self.in_q = kwargs['in_q']
-        self.out_q = kwargs['out_q']
+        if 'out_q' in kwargs:
+            self.out_q = kwargs['out_q']
         self.worker_thread = threading.Thread(
             name='worker_thread',
             target=self.process_q)
@@ -26,7 +27,7 @@ class QueueFilterBase(metaclass=abc.ABCMeta):
             if self._shutdown:
                 break
             result = self.process_q_msg(pickle.loads(msg))
-            if result:
+            if result and hasattr(self, 'out_q'):
                 self.out_q.put(pickle.dumps(result))
 
     def shutdown(self):

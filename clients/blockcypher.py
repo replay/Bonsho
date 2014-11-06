@@ -23,7 +23,7 @@ class BlockCypherClient(client_base.ClientBase):
             json.dumps(subscription))
 
     def _is_pong(self, msg):
-        if 'event' in msg.keys() and msg['event'] == 'pong':
+        if 'event' in msg and msg['event'] == 'pong':
             return True
         return False
 

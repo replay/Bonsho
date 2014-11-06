@@ -4,6 +4,7 @@
 from lib import deduplicator
 from lib import config
 from lib import address_filter
+from lib import callback_executor
 import queue
 from api import server
 from clients import blockcypher
@@ -47,6 +48,8 @@ class Bonsho:
         self.client_manager = client_manager.ClientManager(input_q=self.q1)
         for client_class in self.client_classes:
             self.client_manager.add_client(client_class)
+        self.callback_executor = callback_executor.CallbackExecutor(
+            in_q=self.q3)
         self.address_filter = address_filter.AddressFilter(
             in_q=self.q1,
             out_q=self.q2)
@@ -55,6 +58,7 @@ class Bonsho:
             out_q=self.q3)
 
     def run(self):
+        self.callback_executor.run()
         self.deduper.run()
         self.address_filter.run()
         self.client_manager.run_all()
@@ -65,3 +69,4 @@ class Bonsho:
         self.client_manager.shutdown()
         self.address_filter.shutdown()
         self.deduper.shutdown()
+        self.callback_executor.shutdown()

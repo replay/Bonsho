@@ -17,7 +17,7 @@ class BlockchainInfoClient(client_base.ClientBase):
             json.dumps(subscription))
 
     def _is_pong(self, msg):
-        if 'op' in msg.keys() and msg['op'] == 'block':
+        if 'op' in msg and msg['op'] == 'block':
             return True
         return False
 

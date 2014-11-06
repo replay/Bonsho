@@ -36,9 +36,12 @@ class AddressFilter(queue_filter_base.QueueFilterBase):
     def process_q_msg(self, transaction):
         out_addresses = self._extract_output_addresses(transaction)
         self._lock()
-        intersection = out_addresses & self.search_addresses
+        if 'all' in self.search_addresses:
+            intersection = 1
+        else:
+            intersection = len(out_addresses & self.search_addresses)
         self._unlock()
-        if len(intersection) > 0:
+        if intersection:
             return transaction
 
     def add_address(self, address):

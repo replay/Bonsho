@@ -23,7 +23,4 @@ class RedisClient:
         return int(time.time())
 
     def is_duplicate(self, hash_string):
-        old_value = self.redis.getset(hash_string, self._get_time())
-        if not old_value:
-            return False
-        return old_value
+        return self.redis.getset(hash_string, self._get_time())
