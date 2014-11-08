@@ -6,8 +6,8 @@ from lib import config
 
 
 class BlockCypherClient(client_base.ClientBase):
+    ws_endpoint_url = 'ws://socket.blockcypher.com/v1/btc/main'
     endpoint_name = 'Block Cypher'
-    endpoint_url = 'ws://socket.blockcypher.com/v1/btc/main'
     ping_msg = '{"event": "ping"}'
     ping_interval = 20
     connection_class = connection.WebsocketsConnection

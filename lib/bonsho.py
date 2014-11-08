@@ -70,3 +70,12 @@ class Bonsho:
         self.address_filter.shutdown()
         self.deduper.shutdown()
         self.callback_executor.shutdown()
+
+
+class Crawler:
+    client_classes = [
+        blockcypher.BlockCypherClient,
+        blockchain_info.BlockchainInfoClient]
+
+    def __init__(self):
+        self.config = config.Configuration()['Crawler']

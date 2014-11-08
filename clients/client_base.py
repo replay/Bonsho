@@ -12,7 +12,7 @@ class ClientBase(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def endpoint_url(self):
+    def ws_endpoint_url(self):
         '''The url we want to connect to.'''
         pass
 
@@ -112,7 +112,7 @@ class ClientBase(metaclass=abc.ABCMeta):
         return self.connection.recv()
 
     def connect(self):
-        self.connection = self.connection_class(url=self.endpoint_url)
+        self.connection = self.connection_class(url=self.ws_endpoint_url)
         self.connection.connect()
 
     def disconnect(self):

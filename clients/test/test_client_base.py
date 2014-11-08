@@ -25,7 +25,7 @@ class ConnectionClass:
 
 
 class Client(client_base.ClientBase):
-    endpoint_url = 'testurl'
+    ws_endpoint_url = 'testurl'
     endpoint_name = 'Test Endpoint'
     ping_msg = 'ping msg'
     ping_interval = 20

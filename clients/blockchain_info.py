@@ -1,11 +1,15 @@
 import json
+import time
+import requests
 from models import transaction
 from clients import client_base
 from lib import connection
 
 
 class BlockchainInfoClient(client_base.ClientBase):
-    endpoint_url = 'wss://ws.blockchain.info/inv'
+    ws_endpoint_url = 'wss://ws.blockchain.info/inv'
+    blocks_api_url = 'https://blockchain.info/blocks/{ms}?format=json'
+    transactions_api_url = 'https://blockchain.info/rawblock/{block_hash}'
     endpoint_name = 'Blockchain Info'
     ping_msg = '{"op":"ping_block"}'
     ping_interval = 20
@@ -35,7 +39,8 @@ class BlockchainInfoClient(client_base.ClientBase):
         return transaction.BTCTransactionInputs(
             inputs=[
                 self._build_transaction_input(input['prev_out'])
-                for input in data])
+                for input in data
+                if 'prev_out' in input])
 
     def _build_transaction_output(self, data):
         return transaction.BTCTransactionOutput(
@@ -55,6 +60,25 @@ class BlockchainInfoClient(client_base.ClientBase):
             outputs=self._build_transaction_outputs(tx_data['out']),
             inputs=self._build_transaction_inputs(tx_data['inputs']),
             hash=tx_data['hash'])
+
+    def _block_hash_gen(self, blocks):
+        if 'blocks' not in blocks:
+            return
+        for block in blocks['blocks']:
+            if 'hash' not in block:
+                continue
+            yield block['hash']
+
+    def last_x_seconds_gen(self, seconds):
+        blocks = requests.get(
+            self.blocks_api_url.format(ms=int(time.time())*1000)).json()
+        for block_hash in self._block_hash_gen(blocks):
+            rawblock = requests.get(
+                self.transactions_api_url.format(block_hash=block_hash)).json()
+            if 'tx' not in rawblock:
+                continue
+            for tx in rawblock['tx']:
+                yield self._build_transaction(tx)
 
 
 # The msg format we get from BlockchainInfo
