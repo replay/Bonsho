@@ -1,5 +1,8 @@
 import json
-from models import transaction
+import requests
+import calendar
+import datetime
+from models import blockchain
 from clients import client_base
 from lib import connection
 from lib import config
@@ -31,38 +34,83 @@ class BlockCypherClient(client_base.ClientBase):
         return data
 
     def _build_transaction_input(self, data):
-        return transaction.BTCTransactionInput(
+        return blockchain.BTCTransactionInput(
             value=data['output_value'],
             addresses=[
-                transaction.BTCTransactionAddress(
+                blockchain.BTCTransactionAddress(
                     address=address)
                 for address in data['addresses']])
 
     def _build_transaction_inputs(self, data):
-        return transaction.BTCTransactionInputs(
+        return blockchain.BTCTransactionInputs(
             inputs=[
                 self._build_transaction_input(input)
                 for input in data])
 
     def _build_transaction_output(self, data):
-        return transaction.BTCTransactionOutput(
+        return blockchain.BTCTransactionOutput(
             value=data['value'],
             addresses=[
-                transaction.BTCTransactionAddress(
+                blockchain.BTCTransactionAddress(
                     address=address)
                 for address in data['addresses']])
 
     def _build_transaction_outputs(self, data):
-        return transaction.BTCTransactionOutputs(
+        return blockchain.BTCTransactionOutputs(
             outputs=[
                 self._build_transaction_output(output)
                 for output in data])
 
     def _build_transaction(self, tx_data):
-        return transaction.BTCTransaction(
+        return blockchain.BTCTransaction(
             outputs=self._build_transaction_outputs(tx_data['outputs']),
             inputs=self._build_transaction_inputs(tx_data['inputs']),
             hash=tx_data['hash'])
+
+    def _build_block(self, data):
+        timestamp = calendar.timegm(
+            datetime.datetime.strptime(
+                data['time'],
+                '%Y-%m-%dT%H:%M:%SZ').timetuple())
+        return blockchain.Block(
+            tx_ids=data['txids'],
+            time=timestamp,
+            prev_block=data['prev_block'])
+
+    def _get_latest_block(self):
+        # url of the blockchain properties, this includes the latest block
+        chain_head_url = 'http://api.blockcypher.com/v1/btc/main'
+        head = requests.get(chain_head_url).json()
+        latest_block = requests.get(head['latest_url']).json()
+        return self._build_block(latest_block)
+
+    def _get_prev_block(self, block):
+        # url to get a specific block by hash
+        block_url = 'https://api.blockcypher.com/v1/btc/main/blocks/{block}'
+        block = requests.get(block_url.format(block=block.prev_block)).json()
+        return self._build_block(block)
+
+    def _get_transaction(self, tx_id):
+        transaction_url = 'https://api.blockcypher.com/v1/btc/main/txs/{tx_id}'
+        tx_data = requests.get(transaction_url.format(tx_id=tx_id)).json()
+        return self._build_transaction(tx_data)
+
+    # generator that returns all blocks until a given age in seconds
+    def _get_blocks_by_age(self, age):
+        block = self._get_latest_block()
+        while block.age <= age:
+            block = self._get_prev_block(block)
+            yield block
+
+    def _get_transactions_by_age(self, age):
+        while True:
+            block = self._get_blocks_by_age(age)
+            if not block:
+                return
+            for tx_id in block.transactions:
+                transaction = self._get_transaction(tx_id)
+                yield transaction
+
 
 # The msg format we get from BlockCypher
 '''

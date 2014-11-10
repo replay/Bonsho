@@ -1,3 +1,21 @@
+import calendar
+import time
+
+
+class Block:
+
+    @property
+    def age(self):
+        return calendar.timegm(time.gmtime()) - self.time
+
+    def __init__(self, data=None):
+        if data:
+            self.populate(data)
+
+    def populate(self, **kwargs):
+        self.prev_block = kwargs['prev_block']
+        self.transactions = kwargs['tx_ids']
+        self.time = kwargs['time']
 
 
 class BTCTransactionAddress:

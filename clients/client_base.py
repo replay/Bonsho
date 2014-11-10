@@ -3,7 +3,7 @@ import json
 import pickle
 import asyncio
 import threading
-from models import transaction
+from models import blockchain
 from lib import connection
 from multiprocessing import Pipe
 
@@ -89,7 +89,7 @@ class ClientBase(metaclass=abc.ABCMeta):
         self.loop.run_forever()
 
     def _build_address(self, address_dict):
-        return transaction.BTCTransactionAddress(
+        return blockchain.BTCTransactionAddress(
             address=address_dict['addr'],
             value=address_dict['value'])
 

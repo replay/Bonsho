@@ -79,3 +79,6 @@ class Crawler:
 
     def __init__(self):
         self.config = config.Configuration()['Crawler']
+
+    def run(self):
+        pass

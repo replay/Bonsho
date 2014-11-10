@@ -1,7 +1,7 @@
 import json
 import time
 import requests
-from models import transaction
+from models import blockchain
 from clients import client_base
 from lib import connection
 
@@ -29,34 +29,34 @@ class BlockchainInfoClient(client_base.ClientBase):
         return data['x']
 
     def _build_transaction_input(self, data):
-        return transaction.BTCTransactionInput(
+        return blockchain.BTCTransactionInput(
             value=data['value'],
             addresses=[
-                transaction.BTCTransactionAddress(
+                blockchain.BTCTransactionAddress(
                     address=data['addr'])])
 
     def _build_transaction_inputs(self, data):
-        return transaction.BTCTransactionInputs(
+        return blockchain.BTCTransactionInputs(
             inputs=[
                 self._build_transaction_input(input['prev_out'])
                 for input in data
                 if 'prev_out' in input])
 
     def _build_transaction_output(self, data):
-        return transaction.BTCTransactionOutput(
+        return blockchain.BTCTransactionOutput(
             value=data['value'],
             addresses=[
-                transaction.BTCTransactionAddress(
+                blockchain.BTCTransactionAddress(
                     address=data['addr'])])
 
     def _build_transaction_outputs(self, data):
-        return transaction.BTCTransactionOutputs(
+        return blockchain.BTCTransactionOutputs(
             outputs=[
                 self._build_transaction_output(output)
                 for output in data])
 
     def _build_transaction(self, tx_data):
-        return transaction.BTCTransaction(
+        return blockchain.BTCTransaction(
             outputs=self._build_transaction_outputs(tx_data['out']),
             inputs=self._build_transaction_inputs(tx_data['inputs']),
             hash=tx_data['hash'])
@@ -69,7 +69,7 @@ class BlockchainInfoClient(client_base.ClientBase):
                 continue
             yield block['hash']
 
-    def last_x_seconds_gen(self, seconds):
+    def last_day_gen(self, seconds):
         blocks = requests.get(
             self.blocks_api_url.format(ms=int(time.time())*1000)).json()
         for block_hash in self._block_hash_gen(blocks):

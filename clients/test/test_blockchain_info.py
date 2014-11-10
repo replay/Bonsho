@@ -1,6 +1,6 @@
 import unittest
 import pickle
-from models import transaction
+from models import blockchain
 from collections import deque
 from clients import blockchain_info
 
@@ -35,26 +35,26 @@ class BlockchainInfoClientTest(unittest.TestCase):
             'relayed_by': '127.0.0.1',
             'lock_time': 'Unavailable'}}
 
-    expected_tx = transaction.BTCTransaction(
-        outputs=transaction.BTCTransactionOutputs(
+    expected_tx = blockchain.BTCTransaction(
+        outputs=blockchain.BTCTransactionOutputs(
             outputs=[
-                transaction.BTCTransactionOutput(
+                blockchain.BTCTransactionOutput(
                     value=6500000,
                     addresses=[
-                        transaction.BTCTransactionAddress(
+                        blockchain.BTCTransactionAddress(
                             address='1dice7W2AicHosf5EL3GFDUVga7TgtPFn')]),
-                transaction.BTCTransactionOutput(
+                blockchain.BTCTransactionOutput(
                     value=20986690,
                     addresses=[
-                        transaction.BTCTransactionAddress(
+                        blockchain.BTCTransactionAddress(
                             address='1Ewk9iKm5Hu8Lxq21CMamnaWG6d3NcUc3p')]),
                 ]),
-        inputs=transaction.BTCTransactionInputs(
+        inputs=blockchain.BTCTransactionInputs(
             inputs=[
-                transaction.BTCTransactionInput(
+                blockchain.BTCTransactionInput(
                     value=27496690,
                     addresses=[
-                        transaction.BTCTransactionAddress(
+                        blockchain.BTCTransactionAddress(
                             address='1Ewk9iKm5Hu8Lxq21CMamnaWG6d3NcUc3p')])]),
         hash='426ea994a05614abf88ed01fee485a85105e2a8fc3591de77d26e' +
              '47a383c7119',
