@@ -8,13 +8,12 @@ class Block:
     def age(self):
         return calendar.timegm(time.gmtime()) - self.time
 
-    def __init__(self, data=None):
-        if data:
-            self.populate(data)
+    def __init__(self, **kwargs):
+        self.populate(**kwargs)
 
     def populate(self, **kwargs):
         self.prev_block = kwargs['prev_block']
-        self.transactions = kwargs['tx_ids']
+        self.transactions = kwargs['transactions']
         self.time = kwargs['time']
 
 

@@ -43,6 +43,7 @@ class BlockchainInfoClient(client_base.ClientBase):
                 if 'prev_out' in input])
 
     def _build_transaction_output(self, data):
+        print(data)
         return blockchain.BTCTransactionOutput(
             value=data['value'],
             addresses=[
@@ -61,27 +62,39 @@ class BlockchainInfoClient(client_base.ClientBase):
             inputs=self._build_transaction_inputs(tx_data['inputs']),
             hash=tx_data['hash'])
 
-    def _block_hash_gen(self, blocks):
-        if 'blocks' not in blocks:
-            return
-        for block in blocks['blocks']:
-            if 'hash' not in block:
-                continue
-            yield block['hash']
+    def _build_block(self, data):
+        def transaction_generator(transactions):
+            for transaction in transactions:
+                yield self._build_transaction(transaction)
 
-    def last_day_gen(self, seconds):
-        blocks = requests.get(
-            self.blocks_api_url.format(ms=int(time.time())*1000)).json()
-        for block_hash in self._block_hash_gen(blocks):
-            rawblock = requests.get(
-                self.transactions_api_url.format(block_hash=block_hash)).json()
-            if 'tx' not in rawblock:
-                continue
-            for tx in rawblock['tx']:
-                yield self._build_transaction(tx)
+        return blockchain.Block(
+            transactions=transaction_generator(data['tx']),
+            time=data['time'],
+            prev_block=data['prev_block'])
 
+    def _get_latest_block(self):
+        chain_head_url = 'https://blockchain.info/latestblock'
+        head = requests.get(chain_head_url).json()
+        return self._get_block_by_hash(head['hash'])
 
-# The msg format we get from BlockchainInfo
-'''
-{'op': 'utx', 'x': {'time': 1414435735, 'size': 258, 'vout_sz': 2, 'out': [{'type': 0, 'addr_tag_link': 'http://satoshidice.com', 'value': 6500000, 'addr': '1dice7W2AicHosf5EL3GFDUVga7TgtPFn', 'addr_tag': 'SatoshiDICE 36%'}, {'value': 20986690, 'addr': '1Ewk9iKm5Hu8Lxq21CMamnaWG6d3NcUc3p', 'type': 0}], 'hash': '426ea994a05614abf88ed01fee485a85105e2a8fc3591de77d26e47a383c7119', 'vin_sz': 1, 'inputs': [{'prev_out': {'value': 27496690, 'addr': '1Ewk9iKm5Hu8Lxq21CMamnaWG6d3NcUc3p', 'type': 0}}], 'tx_index': 67752554, 'relayed_by': '127.0.0.1', 'lock_time': 'Unavailable'}} # noqa
-'''
+    def _get_block_by_hash(self, block):
+        block_url = 'https://blockchain.info/rawblock/{block}'
+        block_data = requests.get(block_url.format(block=block)).json()
+        return self._build_block(block_data)
+
+    def _get_prev_block(self, block):
+        return self._get_block_by_hash(block.prev_block)
+
+    # generator that returns all blocks until a given age in seconds
+    def _get_blocks_by_age(self, age):
+        block = self._get_latest_block()
+        while block.age <= age:
+            import pdb
+            pdb.set_trace()
+            block = self._get_prev_block(block)
+            yield block
+
+    def get_transactions_by_age(self, age):
+        for block in self._get_blocks_by_age(age):
+            for transaction in block.transactions:
+                yield transaction

@@ -72,23 +72,28 @@ class BlockCypherClient(client_base.ClientBase):
             datetime.datetime.strptime(
                 data['time'],
                 '%Y-%m-%dT%H:%M:%SZ').timetuple())
+
+        def transaction_generator(txids):
+            for txid in txids:
+                yield self._get_transaction(txid)
+
         return blockchain.Block(
-            tx_ids=data['txids'],
+            transactions=transaction_generator(data['txids']),
             time=timestamp,
             prev_block=data['prev_block'])
 
     def _get_latest_block(self):
-        # url of the blockchain properties, this includes the latest block
         chain_head_url = 'http://api.blockcypher.com/v1/btc/main'
         head = requests.get(chain_head_url).json()
-        latest_block = requests.get(head['latest_url']).json()
-        return self._build_block(latest_block)
+        return self._get_block_by_hash(head['hash'])
+
+    def _get_block_by_hash(self, block):
+        block_url = 'https://api.blockcypher.com/v1/btc/main/blocks/{block}'
+        block = requests.get(block_url.format(block=block)).json()
+        return self._build_block(block)
 
     def _get_prev_block(self, block):
-        # url to get a specific block by hash
-        block_url = 'https://api.blockcypher.com/v1/btc/main/blocks/{block}'
-        block = requests.get(block_url.format(block=block.prev_block)).json()
-        return self._build_block(block)
+        return self._get_block_by_hash(block.prev_block)
 
     def _get_transaction(self, tx_id):
         transaction_url = 'https://api.blockcypher.com/v1/btc/main/txs/{tx_id}'
@@ -102,17 +107,7 @@ class BlockCypherClient(client_base.ClientBase):
             block = self._get_prev_block(block)
             yield block
 
-    def _get_transactions_by_age(self, age):
-        while True:
-            block = self._get_blocks_by_age(age)
-            if not block:
-                return
-            for tx_id in block.transactions:
-                transaction = self._get_transaction(tx_id)
+    def get_transactions_by_age(self, age):
+        for block in self._get_blocks_by_age(age):
+            for transaction in block.transactions:
                 yield transaction
-
-
-# The msg format we get from BlockCypher
-'''
-{'lock_time': 0, 'inputs': [{'output_value': 14185670, 'script': '493046022100fc66231576ca2a12b9914d6bd6fe45bcb265aecd232807d86e520668437306b4022100c43e8c64d20b881eac2f7069b6474ecf00cf3872aa59e127318566b530726740014104d087e1bb648bc101430a7e7d47d25f0110917788801079edce9b77a890e9a5fada14d7b73eea0d99a87e783deeaa966e74b8aa2fa5dbb50ce9894f51c268d1eb', 'prev_hash': '37a56074bc3764e925b9208fc8213d6fd67f6aac57370e69de3e048ed686262f', 'output_index': 1, 'addresses': ['1KiMNd5XxXHNYTbxdHsDEArZWzTFRKoxxy'], 'script_type': 'pay-to-pubkey-hash'}], 'hash': 'cbc3afa37a23daa14fc936987f1c605d120c3ea93990af6c8cd62a6e2898ba14', 'ver': 1, 'vout_sz': 2, 'block_height': -1, 'fees': 10000, 'relayed_by': '173.66.186.150:8333', 'addresses': ['1KiMNd5XxXHNYTbxdHsDEArZWzTFRKoxxy', '1boness9kPxgmRiKFZH9h9SZmuDJqjrQ9'], 'total': 14175670, 'confirmed': '1754-08-30T22:43:41.129Z', 'confirmations': 0, 'preference': 'medium', 'outputs': [{'script_type': 'pay-to-pubkey-hash', 'script': '76a914069532d8f65ea0624ddbb2cbcb3d597cc931e26688ac', 'spent_by': '', 'addresses': ['1boness9kPxgmRiKFZH9h9SZmuDJqjrQ9'], 'value': 1200000}, {'script_type': 'pay-to-pubkey-hash', 'script': '76a914cd44532c32748b8d8332efed5a39a96d54f36bee88ac', 'spent_by': '', 'addresses': ['1KiMNd5XxXHNYTbxdHsDEArZWzTFRKoxxy'], 'value': 12975670}], 'vin_sz': 1, 'double_spend': False, 'received': '2014-10-27T23:04:22.908Z'} # noqa
-'''
