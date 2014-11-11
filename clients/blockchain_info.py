@@ -1,5 +1,4 @@
 import json
-import time
 import requests
 from models import blockchain
 from clients import client_base
@@ -89,10 +88,8 @@ class BlockchainInfoClient(client_base.ClientBase):
     def _get_blocks_by_age(self, age):
         block = self._get_latest_block()
         while block.age <= age:
-            import pdb
-            pdb.set_trace()
-            block = self._get_prev_block(block)
             yield block
+            block = self._get_prev_block(block)
 
     def get_transactions_by_age(self, age):
         for block in self._get_blocks_by_age(age):

@@ -1,4 +1,5 @@
 import unittest
+from unittest import mock
 import pickle
 from models import blockchain
 from collections import deque
@@ -73,3 +74,72 @@ class BlockchainInfoClientTest(unittest.TestCase):
         self.assertEqual(
             pickle.dumps(message_parsed),
             pickle.dumps(self.expected_tx))
+
+    @mock.patch('requests.get', autospec=True)
+    def test_get_block_by_hash(self, requests_get):
+        block_json = {"tx": [], "time": 10, "prev_block": "prv"}
+        mock_block = mock.MagicMock()
+        mock_block.json.return_value = block_json
+        requests_get.return_value = mock_block
+        returned_block = self.client._get_block_by_hash('abc')
+        self.assertEqual(
+            block_json['tx'],
+            [x for x in returned_block.transactions])
+        self.assertEqual(block_json['time'], returned_block.time)
+        self.assertEqual(block_json['prev_block'], returned_block.prev_block)
+
+    @mock.patch(
+        'clients.blockchain_info.BlockchainInfoClient._get_block_by_hash',
+        autospec=True)
+    @mock.patch('requests.get', autospec=True)
+    def test_get_latest_block(self, requests_get, get_block_by_hash):
+        # recreate self.client to mock _get_block_by_hash method
+        self.setUp()
+        chain_head_json = {'hash': 'testvalue'}
+        mock_chain_head = mock.MagicMock()
+        mock_chain_head.json.return_value = chain_head_json
+        requests_get.return_value = mock_chain_head
+        self.client._get_latest_block()
+        get_block_by_hash.assert_called_once_with(
+            self.client,
+            chain_head_json['hash'])
+
+    @mock.patch(
+        'clients.blockchain_info.BlockchainInfoClient._get_block_by_hash',
+        autospec=True)
+    def test_get_prev_block(self, get_block_by_hash):
+        # recreate self.client to mock _get_block_by_hash method
+        self.setUp()
+        prev_block_hash = 'testvalue'
+        mock_block = mock.MagicMock()
+        mock_block.prev_block = prev_block_hash
+        self.client._get_prev_block(mock_block)
+        get_block_by_hash.assert_called_once_with(
+            self.client,
+            prev_block_hash)
+
+    @mock.patch(
+        'clients.blockchain_info.BlockchainInfoClient._get_prev_block',
+        autospec=True)
+    @mock.patch(
+        'clients.blockchain_info.BlockchainInfoClient._get_latest_block',
+        autospec=True)
+    def test_get_block_by_age(self, get_latest_block, get_prev_block):
+        # recreate self.client to mock methods
+        self.setUp()
+
+        def mock_block_gen():
+            age = 0
+            while age < 100:
+                age = age + 1
+                mock_block = mock.MagicMock()
+                mock_block.age = age
+                yield mock_block
+
+        blocks = [x for x in mock_block_gen()]
+
+        get_latest_block.side_effect = blocks[:1]
+        get_prev_block.side_effect = blocks[1:]
+        blocks = [x.age for x in self.client._get_blocks_by_age(5)]
+        self.assertEqual(blocks, [1, 2, 3, 4, 5])
+
