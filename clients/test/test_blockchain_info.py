@@ -142,3 +142,30 @@ class BlockchainInfoClientTest(unittest.TestCase):
         get_prev_block.side_effect = blocks[1:]
         blocks = [x.age for x in self.client._get_blocks_by_age(5)]
         self.assertEqual(blocks, [1, 2, 3, 4, 5])
+
+    @mock.patch(
+        'clients.blockchain_info.BlockchainInfoClient._get_blocks_by_age',
+        autospec=True)
+    def test_get_transactions_by_age(self, get_blocks_by_age):
+        # recreate self.client to mock methods
+        self.setUp()
+
+        def mock_block_gen():
+            transactions = 0
+            steps = 5
+            age = 0
+            while age < 5:
+                mock_block = mock.MagicMock()
+                mock_block.transactions = range(
+                    transactions,
+                    transactions + steps)
+                mock_block.age = age
+                age = age + 1
+                transactions = transactions + steps
+                yield mock_block
+
+        blocks = [x for x in mock_block_gen()]
+
+        get_blocks_by_age.return_value = blocks
+        transactions = [x for x in self.client.get_transactions_by_age(5)]
+        self.assertEqual(transactions, [x for x in range(0,25)])
