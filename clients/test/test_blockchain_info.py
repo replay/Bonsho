@@ -142,4 +142,3 @@ class BlockchainInfoClientTest(unittest.TestCase):
         get_prev_block.side_effect = blocks[1:]
         blocks = [x.age for x in self.client._get_blocks_by_age(5)]
         self.assertEqual(blocks, [1, 2, 3, 4, 5])
-
