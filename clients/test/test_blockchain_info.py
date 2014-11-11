@@ -168,4 +168,4 @@ class BlockchainInfoClientTest(unittest.TestCase):
 
         get_blocks_by_age.return_value = blocks
         transactions = [x for x in self.client.get_transactions_by_age(5)]
-        self.assertEqual(transactions, [x for x in range(0,25)])
+        self.assertEqual(transactions, [x for x in range(0, 25)])
