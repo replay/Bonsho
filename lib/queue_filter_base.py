@@ -1,9 +1,10 @@
 import abc
 import threading
 import pickle
+from lib import worker_thread
 
 
-class QueueFilterBase(metaclass=abc.ABCMeta):
+class QueueFilterBase(worker_thread.WorkerThread, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def process_q_msg(self):
@@ -14,12 +15,8 @@ class QueueFilterBase(metaclass=abc.ABCMeta):
         self.in_q = kwargs['in_q']
         if 'out_q' in kwargs:
             self.out_q = kwargs['out_q']
-        self.worker_thread = threading.Thread(
-            name='worker_thread',
-            target=self.process_q)
-
-    def run(self):
-        self.worker_thread.start()
+        self.worker_method = self.process_q
+        super(QueueFilterBase, self).__init__(*args, **kwargs)
 
     def process_q(self):
         while True:
