@@ -1,4 +1,5 @@
 import abc
+import requests
 import json
 import pickle
 import asyncio
@@ -39,6 +40,16 @@ class ClientBase(metaclass=abc.ABCMeta):
     def connection_class(self):
         pass
 
+    @property
+    @abc.abstractmethod
+    def chain_head_url(self):
+        pass
+
+    @property
+    @abc.abstractmethod
+    def block_url(self):
+        pass
+
     @abc.abstractmethod
     def _build_transaction(self, tx_data):
         '''Build Transaction object from data.'''
@@ -55,8 +66,20 @@ class ClientBase(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
+    def _extract_block_transactions(self, block):
+        pass
+
+    @abc.abstractmethod
     def subscribe(self):
         '''Subscribe to the notifications we are interested in.'''
+        pass
+
+    @abc.abstractmethod
+    def _prepare_time(self):
+        pass
+
+    @abc.abstractmethod
+    def _prepare_transaction(self):
         pass
 
     def __init__(self, *args, **kwargs):
@@ -132,3 +155,38 @@ class ClientBase(metaclass=abc.ABCMeta):
             data = self._build_transaction(
                 self._extract_transaction_data(msg))
             self.msg_queue.put(pickle.dumps(data), block=True, timeout=3)
+
+    def get_transactions_by_age(self, age):
+        for block in self._get_blocks_by_age(age):
+            for transaction in block.transactions:
+                yield transaction
+
+    def _get_blocks_by_age(self, age):
+        block = self._get_latest_block()
+        while block.age <= age:
+            yield block
+            block = self._get_prev_block(block)
+
+    def _get_prev_block(self, block):
+        return self._get_block_by_hash(block.prev_block)
+
+    def _get_latest_block(self):
+        head = requests.get(self.chain_head_url).json()
+        return self._get_block_by_hash(head['hash'])
+
+    def _get_block_by_hash(self, block):
+        block_data = requests.get(self.block_url.format(block=block)).json()
+        return self._build_block(block_data)
+
+    def _build_block(self, data):
+        timestamp = self._prepare_time(data['time'])
+
+        def transaction_generator(transactions):
+            for transaction in transactions:
+                yield self._prepare_transaction(transaction)
+
+        return blockchain.Block(
+            transactions=transaction_generator(
+                self._extract_block_transactions(data)),
+            time=timestamp,
+            prev_block=data['prev_block'])

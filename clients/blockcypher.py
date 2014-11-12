@@ -10,6 +10,8 @@ from lib import config
 
 class BlockCypherClient(client_base.ClientBase):
     ws_endpoint_url = 'ws://socket.blockcypher.com/v1/btc/main'
+    chain_head_url = 'http://api.blockcypher.com/v1/btc/main'
+    block_url = 'https://api.blockcypher.com/v1/btc/main/blocks/{block}'
     endpoint_name = 'Block Cypher'
     ping_msg = '{"event": "ping"}'
     ping_interval = 20
@@ -32,6 +34,9 @@ class BlockCypherClient(client_base.ClientBase):
 
     def _extract_transaction_data(self, data):
         return data
+
+    def _extract_block_transactions(self, block):
+        return block['txids']
 
     def _build_transaction_input(self, data):
         return blockchain.BTCTransactionInput(
@@ -67,47 +72,14 @@ class BlockCypherClient(client_base.ClientBase):
             inputs=self._build_transaction_inputs(tx_data['inputs']),
             hash=tx_data['hash'])
 
-    def _build_block(self, data):
-        timestamp = calendar.timegm(
-            datetime.datetime.strptime(
-                data['time'],
-                '%Y-%m-%dT%H:%M:%SZ').timetuple())
-
-        def transaction_generator(txids):
-            for txid in txids:
-                yield self._get_transaction(txid)
-
-        return blockchain.Block(
-            transactions=transaction_generator(data['txids']),
-            time=timestamp,
-            prev_block=data['prev_block'])
-
-    def _get_latest_block(self):
-        chain_head_url = 'http://api.blockcypher.com/v1/btc/main'
-        head = requests.get(chain_head_url).json()
-        return self._get_block_by_hash(head['hash'])
-
-    def _get_block_by_hash(self, block):
-        block_url = 'https://api.blockcypher.com/v1/btc/main/blocks/{block}'
-        block = requests.get(block_url.format(block=block)).json()
-        return self._build_block(block)
-
-    def _get_prev_block(self, block):
-        return self._get_block_by_hash(block.prev_block)
-
     def _get_transaction(self, tx_id):
         transaction_url = 'https://api.blockcypher.com/v1/btc/main/txs/{tx_id}'
         tx_data = requests.get(transaction_url.format(tx_id=tx_id)).json()
         return self._build_transaction(tx_data)
 
-    # generator that returns all blocks until a given age in seconds
-    def _get_blocks_by_age(self, age):
-        block = self._get_latest_block()
-        while block.age <= age:
-            block = self._get_prev_block(block)
-            yield block
+    def _prepare_time(self, time):
+        return calendar.timegm(
+            datetime.datetime.strptime(time, '%Y-%m-%dT%H:%M:%SZ').timetuple())
 
-    def get_transactions_by_age(self, age):
-        for block in self._get_blocks_by_age(age):
-            for transaction in block.transactions:
-                yield transaction
+    def _prepare_transaction(self, txid):
+        return self._get_transaction(txid)

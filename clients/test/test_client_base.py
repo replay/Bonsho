@@ -27,6 +27,8 @@ class ConnectionClass:
 class Client(client_base.ClientBase):
     ws_endpoint_url = 'testurl'
     endpoint_name = 'Test Endpoint'
+    chain_head_url = 'https://test'
+    block_url = 'https://test'
     ping_msg = 'ping msg'
     ping_interval = 20
     connection_class = ConnectionClass
@@ -43,6 +45,15 @@ class Client(client_base.ClientBase):
 
     def _extract_transaction_data(self, msg):
         return msg
+
+    def _extract_block_transactions(self, block):
+        return block
+
+    def _prepare_time(self, time):
+        return time
+
+    def _prepare_transaction(self, transaction):
+        return transaction
 
     def _is_pong(self, value):
         return False
