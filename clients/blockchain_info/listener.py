@@ -10,9 +10,9 @@ class Listener(listener.ListenerBase):
     ping_msg = '{"op":"ping_block"}'
     ping_interval = 20
     connection_class = connection.WebsocketsConnection
-    parser = parser.BlockchainInfoParser
+    parser = parser.Parser
 
-    def extract_transaction_data(self, data):
+    def extract_transactions(self, data):
         return data['x']
 
     def subscribe(self):

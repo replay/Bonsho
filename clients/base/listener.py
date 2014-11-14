@@ -1,7 +1,7 @@
 import asyncio
 import pickle
-import threading
 import json
+from lib import connection
 from multiprocessing import Pipe
 from lib import worker_thread
 
@@ -68,7 +68,7 @@ class ListenerBase(worker_thread.WorkerThread):
 
     def handle_incoming_data(self):
         msg = json.loads(self.read_message())
-        tx_data = self.extract_transaction_data(msg)
+        tx_data = self.extract_transactions(msg)
         if not self._is_pong(msg):
             self.msg_queue.put(
                 pickle.dumps(

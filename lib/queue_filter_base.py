@@ -1,5 +1,4 @@
 import abc
-import threading
 import pickle
 from lib import worker_thread
 

@@ -56,6 +56,6 @@ class CrawlerBase(worker_thread.WorkerThread):
 
         return blockchain.Block(
             transactions=transaction_generator(
-                self.parser.extract_block_transactions(data)),
+                self.extract_transactions(data)),
             time=timestamp,
             prev_block=data['prev_block'])

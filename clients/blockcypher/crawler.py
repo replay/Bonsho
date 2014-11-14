@@ -4,6 +4,7 @@ import calendar
 import datetime
 import requests
 
+
 class Crawler(crawler_base.CrawlerBase):
     chain_head_url = 'http://api.blockcypher.com/v1/btc/main'
     block_url = 'https://api.blockcypher.com/v1/btc/main/blocks/{block}'

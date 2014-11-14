@@ -2,7 +2,7 @@ from clients.base import parser
 from models import blockchain
 
 
-class BlockchainInfoParser(parser.ParserBase):
+class Parser(parser.ParserBase):
 
     @classmethod
     def build_transaction(cls, tx_data):
@@ -10,10 +10,6 @@ class BlockchainInfoParser(parser.ParserBase):
             outputs=cls.build_transaction_outputs(tx_data['out']),
             inputs=cls.build_transaction_inputs(tx_data['inputs']),
             hash=tx_data['hash'])
-
-    @classmethod
-    def extract_block_transactions(cls, block):
-        return block['tx']
 
     @classmethod
     def build_transaction_inputs(cls, data):

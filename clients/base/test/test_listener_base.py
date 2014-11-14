@@ -1,8 +1,9 @@
 import unittest
 import pickle
-from clients import client_base
+from clients.base import listener
 import queue
 from lib import connection
+from unittest import mock
 
 
 class ConnectionClass:
@@ -24,7 +25,7 @@ class ConnectionClass:
         self.connected = False
 
 
-class Client(client_base.ClientBase):
+class Listener(listener.ListenerBase):
     ws_endpoint_url = 'testurl'
     endpoint_name = 'Test Endpoint'
     chain_head_url = 'https://test'
@@ -34,36 +35,26 @@ class Client(client_base.ClientBase):
     connection_class = ConnectionClass
 
     def __init__(self, *args, **kwargs):
-        super(Client, self).__init__(*args, **kwargs)
-        self.got_test_string = False
+        super(Listener, self).__init__(*args, **kwargs)
+        self.parser = mock.MagicMock()
+        setattr(self.parser, 'build_transaction', mock.MagicMock())
+        self.parser.build_transaction.return_value = 'processed transaction'
+
+    def _is_pong(self, data):
+        return False
 
     def subscribe(self):
         pass
 
-    def _build_transaction(self, msg):
+    def extract_transactions(self, msg):
         return msg
 
-    def _extract_transaction_data(self, msg):
-        return msg
 
-    def _extract_block_transactions(self, block):
-        return block
-
-    def _prepare_time(self, time):
-        return time
-
-    def _prepare_transaction(self, transaction):
-        return transaction
-
-    def _is_pong(self, value):
-        return False
-
-
-class ClientBaseTest(unittest.TestCase):
+class ListenerBaseTest(unittest.TestCase):
 
     def setUp(self):
         self.test_queue = queue.Queue()
-        self.client = Client(
+        self.client = Listener(
             connection_class=ConnectionClass,
             msg_queue=self.test_queue)
 
@@ -84,8 +75,10 @@ class ClientBaseTest(unittest.TestCase):
         self.client.disconnect()
         self.assertEqual(self.client.connection.connected, False)
 
-    def test_handle_event(self):
+    def test_handle_incoming_data(self):
         self.client.connect()
-        self.client.handle_event()
+        self.client.handle_incoming_data()
         msg = self.test_queue.get()
-        self.assertEqual(msg, pickle.dumps({"action": "test"}))
+        self.assertEqual(msg, pickle.dumps('processed transaction'))
+        self.client.parser.build_transaction.assert_called_once_with(
+            {'action': 'test'})

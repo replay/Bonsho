@@ -17,7 +17,7 @@ class Listener(listener.ListenerBase):
         super(Listener, self).__init__(*args, **kwargs)
         self.config = config.Configuration()['BlockCypher']
 
-    def extract_transaction_data(self, data):
+    def extract_transactions(self, data):
         return data
 
     def subscribe(self):
