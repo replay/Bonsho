@@ -21,7 +21,8 @@ then
      --cover3-inclusive\
      --cover3-package=clients\
      --cover3-package=lib\
-     --cover3-package=api\
+     --cover3-package=control_api\
+     --cover3-package=websockets_api\
      --cover3-package=models
      --cover3-package=main"
 fi

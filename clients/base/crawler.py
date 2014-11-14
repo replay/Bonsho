@@ -14,7 +14,6 @@ class CrawlerBase(worker_thread.WorkerThread):
         super(CrawlerBase, self).__init__(*args, **kwargs)
 
     def _run(self):
-        print('crawling')
         self.crawl()
         self.loop.call_later(60, self._run)
 
