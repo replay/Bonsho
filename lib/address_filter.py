@@ -53,3 +53,10 @@ class AddressFilter(queue_filter_base.QueueFilterBase):
         self._lock()
         self.search_addresses.remove(address)
         self._unlock()
+
+    def shutdown(self):
+        # we need to reset the shared state because threads can only be
+        # started once
+        self.__initialized = False
+        self.__shared_state = {}
+        super(AddressFilter, self).shutdown()
