@@ -1,4 +1,6 @@
 import unittest
+import time
+import calendar
 from unittest import mock
 from collections import deque
 from clients.blockchain_info import crawler
@@ -7,10 +9,9 @@ from clients.blockchain_info import crawler
 class CrawlerTest(unittest.TestCase):
 
     def setUp(self):
-        queue = deque()
+        self.queue = deque()
         self.crawler = crawler.Crawler(
-            connection_class=None,
-            msg_queue=queue)
+            msg_queue=self.queue)
 
     @mock.patch('requests.get', autospec=True)
     def test_get_block_by_hash(self, requests_get):
@@ -106,3 +107,66 @@ class CrawlerTest(unittest.TestCase):
         get_blocks_by_age.return_value = blocks
         transactions = [x for x in self.crawler.get_transactions_by_age(5)]
         self.assertEqual(transactions, [x for x in range(0, 25)])
+
+    @mock.patch('requests.get', autospec=True)
+    def test_get_transactions_by_age2(self, requests_get):
+        # recreate self.crawler to mock methods
+        self.setUp()
+        stub_head = mock.MagicMock()
+        stub_head.json.return_value = {'hash': 'testhash1'}
+        stub_block1 = mock.MagicMock()
+        stub_block1.json.return_value = {
+            'hash': 'testhash1',
+            'prev_block': 'testhash2',
+            'time': calendar.timegm(time.gmtime()) - 400,
+            'tx': [{
+                'out': [{
+                    'value': 10,
+                    'addr': 'addr1'
+                }, {
+                    'value': 20,
+                    'addr': 'addr2'
+                }],
+                'inputs': [{
+                    'prev_out': {
+                        'value': 30,
+                        'addr': 'addr3'
+                    }}, {
+                    'prev_out': {
+                        'value': 40,
+                        'addr': 'addr4'
+                    }}],
+                'hash': '123'}
+            ]}
+        stub_block2 = mock.MagicMock()
+        stub_block2.json.return_value = {
+            'hash': 'testhash2',
+            'prev_block': 'testhash3',
+            'time': calendar.timegm(time.gmtime()) - 2000,
+            'tx': []}
+        requests_get.side_effect = [
+            stub_head,
+            stub_block1,
+            stub_block2]
+        transactions = [x for x in self.crawler.get_transactions_by_age(1000)]
+        requests_get.assert_has_calls([
+            mock.call(self.crawler.chain_head_url),
+            mock.call(self.crawler.block_url.format(block='testhash1')),
+            mock.call(self.crawler.block_url.format(block='testhash2')),
+        ])
+        self.assertEqual(transactions[0].inputs.inputs[0].value, 30)
+        self.assertEqual(
+            transactions[0].inputs.inputs[0].addresses[0].address,
+            'addr3')
+        self.assertEqual(transactions[0].inputs.inputs[1].value, 40)
+        self.assertEqual(
+            transactions[0].inputs.inputs[1].addresses[0].address,
+            'addr4')
+        self.assertEqual(transactions[0].outputs.outputs[0].value, 10)
+        self.assertEqual(
+            transactions[0].outputs.outputs[0].addresses[0].address,
+            'addr1')
+        self.assertEqual(transactions[0].outputs.outputs[1].value, 20)
+        self.assertEqual(
+            transactions[0].outputs.outputs[1].addresses[0].address,
+            'addr2')
