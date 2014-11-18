@@ -9,10 +9,11 @@ class Crawler(crawler_base.CrawlerBase):
     chain_head_url = 'http://api.blockcypher.com/v1/btc/main'
     block_url = 'https://api.blockcypher.com/v1/btc/main/blocks/{block}'
     parser = parser.BlockCypherParser
+    time_format = '%Y-%m-%dT%H:%M:%SZ'
 
     def prepare_time(self, time):
         return calendar.timegm(
-            datetime.datetime.strptime(time, '%Y-%m-%dT%H:%M:%SZ').timetuple())
+            datetime.datetime.strptime(time, self.time_format).timetuple())
 
     def get_transaction(self, tx_id):
         transaction_url = 'https://api.blockcypher.com/v1/btc/main/txs/{tx_id}'
@@ -21,3 +22,6 @@ class Crawler(crawler_base.CrawlerBase):
 
     def prepare_transaction(self, txid):
         return self.get_transaction(txid)
+
+    def extract_transactions(cls, block):
+        return block['txids']

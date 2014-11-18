@@ -2,14 +2,14 @@ import unittest
 import time
 import calendar
 from unittest import mock
-from collections import deque
+import queue
 from clients.blockchain_info import crawler
 
 
 class CrawlerTest(unittest.TestCase):
 
     def setUp(self):
-        self.queue = deque()
+        self.queue = queue.Queue()
         self.crawler = crawler.Crawler(
             msg_queue=self.queue)
 

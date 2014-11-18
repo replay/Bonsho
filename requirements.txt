@@ -7,3 +7,4 @@ nose-cover3
 redis
 pyramid
 requests
+pytz
