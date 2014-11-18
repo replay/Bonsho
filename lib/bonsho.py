@@ -54,8 +54,8 @@ class Bonsho:
 
 class Crawler:
     client_classes = [
-        bc_crawler.Crawler,]
-        #bi_crawler.Crawler]
+        bc_crawler.Crawler,
+        bi_crawler.Crawler]
 
     def __init__(self):
         self.config = config.Configuration()['Crawler']

@@ -1,7 +1,6 @@
 import unittest
 import calendar
 import time
-import datetime
 from unittest import mock
 from lib import utils
 import queue
@@ -16,7 +15,8 @@ class CrawlerTest(unittest.TestCase):
             msg_queue=self.queue)
 
     def _stub_transaction_dict(self, values):
-        '''Generate a stub transaction based on given values, blockcypher format'''
+        '''Generate a stub transaction based on given values,
+           blockcypher format'''
         return {
             'hash': values['hash'],
             'tx': [{
@@ -28,13 +28,11 @@ class CrawlerTest(unittest.TestCase):
                     {'prev_out': {
                         'value': input['value'],
                         'addr': input['addr']}}
-                    for input in transaction['inputs']],
-            }
-            for transaction in values['transactions']]}
+                    for input in transaction['inputs']]}
+                   for transaction in values['transactions']]}
 
     def _stub_block_dict(self, values):
         '''Generate a stub block based on given values, blockcypher format'''
-        datestring = datetime.datetime.fromtimestamp(values['time'])
         return {
             'prev_block': values['prev_block'],
             'hash': values['hash'],
