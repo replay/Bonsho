@@ -9,6 +9,7 @@ from lib import worker_thread
 class WebsocketsServer(worker_thread.WorkerThread):
 
     def __init__(self):
+        self.running = False
         self.conn_queues = []
         self.worker_method = self._run
         self.pipe = Pipe()
@@ -22,6 +23,7 @@ class WebsocketsServer(worker_thread.WorkerThread):
             self.pipe[1],
             self.send_to_all)
         asyncio.get_event_loop().run_until_complete(self.server)
+        self.running = True
         asyncio.get_event_loop().run_forever()
 
     def get_input_pipe(self):
@@ -43,8 +45,14 @@ class WebsocketsServer(worker_thread.WorkerThread):
     def send_to_all(self):
         '''Send data from input pipe to all connections'''
         data = self.pipe[1].recv()
+        if data == 'shutdown':
+            asyncio.get_event_loop().stop()
         for queue in self.conn_queues:
             asyncio.get_event_loop().create_task(queue.put(data))
+
+    def shutdown(self):
+        self.server.close()
+        self.get_input_pipe().send('shutdown')
 
 
 class WebsocketsApi(queue_filter_base.QueueFilterBase):
@@ -57,3 +65,7 @@ class WebsocketsApi(queue_filter_base.QueueFilterBase):
 
     def process_q_msg(self, transaction):
         self.output_pipe.send(pickle.dumps(transaction))
+
+    def shutdown(self):
+        self.ws_server.shutdown()
+        super(WebsocketsApi, self).shutdown()
