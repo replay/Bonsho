@@ -8,3 +8,4 @@ redis
 pyramid
 requests
 pytz
+websockets
