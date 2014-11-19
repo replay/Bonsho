@@ -43,8 +43,10 @@ class WebsocketsApiTest(unittest.TestCase):
         for i in range(num_conns):
             event = threading.Event()
             events.append(event)
-            threads.append(threading.Thread(target=self._connect, args=[results, event]))
-        producer = threading.Thread(target=self._produce_data, args=[events, testdata])
+            threads.append(threading.Thread(
+                target=self._connect, args=[results, event]))
+        producer = threading.Thread(
+            target=self._produce_data, args=[events, testdata])
 
         for thread in threads:
             thread.start()
