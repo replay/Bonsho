@@ -22,8 +22,8 @@ class WebsocketsServer(worker_thread.WorkerThread):
         asyncio.get_event_loop().add_reader(
             self.pipe[1],
             self.send_to_all)
-        asyncio.get_event_loop().run_until_complete(self.server)
         self.running = True
+        asyncio.get_event_loop().run_until_complete(self.server)
         asyncio.get_event_loop().run_forever()
 
     def get_input_pipe(self):

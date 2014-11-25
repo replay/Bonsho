@@ -22,5 +22,4 @@ class Listener(listener.ListenerBase):
 
     def subscribe(self):
         subscription = {'op': 'unconfirmed_sub'}
-        self.connection.send(
-            json.dumps(subscription))
+        self.connection.send(json.dumps(subscription))
