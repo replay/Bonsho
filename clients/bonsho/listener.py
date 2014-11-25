@@ -1,7 +1,6 @@
 from clients.base import listener
 from clients.blockchain_info import parser
 from lib import connection
-import json
 
 
 class Listener(listener.ListenerBase):

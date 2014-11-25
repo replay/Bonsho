@@ -1,5 +1,4 @@
 import abc
-import json
 import calendar
 import time
 import six
@@ -8,54 +7,58 @@ import six
 @six.add_metaclass(abc.ABCMeta)
 class Serializer:
 
-  @abc.abstractproperty
-  def serializing_properties(self):
-    pass
+    @abc.abstractproperty
+    def serializing_properties(self):
+        pass
 
-  def _get_value(self, type, obj):
-      if type == 'number':
-        return int(obj)
-      elif type == 'string':
-        return str(obj)
-      elif type == 'object':
-        return obj.as_dict()
+    def _get_value(self, type, obj):
+        if type == 'number':
+            return int(obj)
+        elif type == 'string':
+            return str(obj)
+        elif type == 'object':
+            return obj.as_dict()
 
-  def as_dict(self):
-    dict_properties = {}
-    for name, specs in six.iteritems(self.serializing_properties):
-      if specs['type'] in ['number', 'string', 'object']:
-        dict_properties[name] = self._get_value(specs['type'], getattr(self, name))
-      elif specs['type'] == 'array':
-        tmp_list = []
-        for element in getattr(self, name):
-            tmp_list.append(
-                self._get_value(
-                    specs['elements']['type'],
-                    element))
-            dict_properties[name] = tmp_list
-    return dict_properties
+    def as_dict(self):
+        dict_properties = {}
+        for name, specs in six.iteritems(self.serializing_properties):
+            if specs['type'] in ['number', 'string', 'object']:
+                dict_properties[name] = self._get_value(
+                    specs['type'],
+                    getattr(
+                        self,
+                        name))
+            elif specs['type'] == 'array':
+                tmp_list = []
+                for element in getattr(self, name):
+                    tmp_list.append(
+                        self._get_value(
+                            specs['elements']['type'],
+                            element))
+                    dict_properties[name] = tmp_list
+        return dict_properties
 
-  @classmethod
-  def _create_value(cls, specs, data):
-      if specs['type'] == 'number':
-          return int(data)
-      if specs['type'] == 'string':
-          return str(data)
-      if specs['type'] == 'object':
-          return specs['class'].from_dict(data)
+    @classmethod
+    def _create_value(cls, specs, data):
+        if specs['type'] == 'number':
+            return int(data)
+        if specs['type'] == 'string':
+            return str(data)
+        if specs['type'] == 'object':
+            return specs['class'].from_dict(data)
 
-  @classmethod
-  def from_dict(cls, data):
-    obj = cls()
-    for name, specs in six.iteritems(cls.serializing_properties):
-      if specs['type'] in ['number', 'string', 'object']:
-        setattr(obj, name, cls._create_value(specs, data[name]))
-      elif specs['type'] == 'array':
-        tmp_list = []
-        for val in data[name]:
-          tmp_list.append(cls._create_value(specs['elements'], val))
-        setattr(obj, name, tmp_list)
-    return obj
+    @classmethod
+    def from_dict(cls, data):
+        obj = cls()
+        for name, specs in six.iteritems(cls.serializing_properties):
+            if specs['type'] in ['number', 'string', 'object']:
+                setattr(obj, name, cls._create_value(specs, data[name]))
+            elif specs['type'] == 'array':
+                tmp_list = []
+                for val in data[name]:
+                    tmp_list.append(cls._create_value(specs['elements'], val))
+                    setattr(obj, name, tmp_list)
+        return obj
 
 
 class Block:
@@ -76,7 +79,7 @@ class Block:
 class BTCTransactionAddress(Serializer):
 
     serializing_properties = {
-      'address': {'type': 'string'}}
+        'address': {'type': 'string'}}
 
     def __init__(self, address=None):
         self.address = address
@@ -85,13 +88,13 @@ class BTCTransactionAddress(Serializer):
 class BTCTransactionInput(Serializer):
 
     serializing_properties = {
-      'addresses': {
-          'type': 'array',
-          'elements': {
-            'type': 'object',
-            'class': BTCTransactionAddress}},
-      'value': {
-          'type': 'number'}}
+        'addresses': {
+            'type': 'array',
+            'elements': {
+                'type': 'object',
+                'class': BTCTransactionAddress}},
+        'value': {
+            'type': 'number'}}
 
     def __init__(self, addresses=None, value=None):
         self.addresses = addresses
@@ -114,13 +117,13 @@ class BTCTransactionInputs(Serializer):
 class BTCTransactionOutput(Serializer):
 
     serializing_properties = {
-      'addresses': {
-          'type': 'array',
-          'elements': {
-            'type': 'object',
-            'class': BTCTransactionAddress}},
-      'value': {
-          'type': 'number'}}
+        'addresses': {
+            'type': 'array',
+            'elements': {
+                'type': 'object',
+                'class': BTCTransactionAddress}},
+        'value': {
+            'type': 'number'}}
 
     def __init__(self, addresses=None, value=None):
         self.addresses = addresses
