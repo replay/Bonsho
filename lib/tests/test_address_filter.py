@@ -1,7 +1,7 @@
 import unittest
 import queue
 from lib import address_filter
-from models import blockchain
+from utter_libs.models import blockchain
 
 
 class CrawlerTest(unittest.TestCase):

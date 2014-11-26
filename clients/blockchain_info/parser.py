@@ -1,5 +1,5 @@
 from clients.base import parser
-from models import blockchain
+from utter_libs.models import blockchain
 
 
 class Parser(parser.ParserBase):

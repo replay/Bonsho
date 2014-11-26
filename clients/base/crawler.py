@@ -1,7 +1,7 @@
 import asyncio
 import requests
 import pickle
-from models import blockchain
+from utter_libs.models import blockchain
 from lib import worker_thread
 
 

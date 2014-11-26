@@ -1,6 +1,6 @@
 import unittest
 import pickle
-from models import blockchain
+from utter_libs.models import blockchain
 from clients.blockchain_info import parser
 
 
